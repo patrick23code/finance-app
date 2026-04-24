@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, Trash2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { useCollection } from '../hooks/useFirestore'
+import { useCollection, deleteDocument, updateDocument } from '../hooks/useFirestore'
+import { useSwipeDelete } from '../hooks/useSwipeDelete'
 
 const CATEGORY_ICONS = {
   cigarettes: { emoji: '🚬', color: 'bg-stone-600' },
@@ -37,6 +38,9 @@ function groupByDate(txns) {
 export default function DebtDetailPage({ debt, onBack, onEditTransaction }) {
   const { user } = useAuth()
   const { data: transactions } = useCollection('transactions', user?.uid)
+  const { data: debts } = useCollection('debts', user?.uid)
+  const { data: accounts } = useCollection('accounts', user?.uid)
+  const { swiped, setSwiped, handlers } = useSwipeDelete()
 
   const related = useMemo(() => {
     return transactions.filter(t =>
@@ -138,20 +142,61 @@ export default function DebtDetailPage({ debt, onBack, onEditTransaction }) {
                   {txns.map((t, i) => {
                     const cat = CATEGORY_ICONS[t.category] || CATEGORY_ICONS.other
                     const isPayment = t.toId === debt.id
+                    const isSwipedOpen = swiped === t.id
+
+                    async function handleDelete() {
+                      try {
+                        if (t.sourceId && t.sourceType) {
+                          if (t.sourceType === 'card') {
+                            const card = debts.find(d => d.id === t.sourceId)
+                            if (card) {
+                              const reverseAmount = t.type === 'expense'
+                                ? (card.remaining || 0) - t.amount
+                                : (card.remaining || 0) + t.amount
+                              await updateDocument('debts', t.sourceId, { remaining: reverseAmount })
+                            }
+                          } else if (t.sourceType === 'account') {
+                            const account = accounts.find(a => a.id === t.sourceId)
+                            if (account) {
+                              const reverseBalance = t.type === 'expense'
+                                ? (account.balance || 0) + t.amount
+                                : Math.max(0, (account.balance || 0) - t.amount)
+                              await updateDocument('accounts', t.sourceId, { balance: reverseBalance })
+                            }
+                          }
+                        }
+                        await deleteDocument('transactions', t.id)
+                        setSwiped(null)
+                      } catch (e) {
+                        console.warn('Delete failed:', e)
+                      }
+                    }
+
                     return (
-                      <div key={t.id} onClick={() => onEditTransaction?.(t)} className={`flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-stone-50 ${i < txns.length - 1 ? 'border-b border-stone-100' : ''}`}>
-                        <div className={`w-10 h-10 rounded-full ${isPayment ? 'bg-emerald-100' : cat.color} flex items-center justify-center text-lg flex-shrink-0`}>
-                          {isPayment ? '💳' : cat.emoji}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-stone-800 text-sm">{t.name}</p>
-                          <p className="text-xs text-stone-400">
-                            {isPayment ? 'Payment' : t.category.charAt(0).toUpperCase() + t.category.slice(1)}
+                      <div key={t.id} className={`relative overflow-hidden ${i < txns.length - 1 ? 'border-b border-stone-100' : ''}`}
+                        onTouchStart={(e) => handlers.onTouchStart(t.id, e)}
+                        onTouchMove={(e) => handlers.onTouchMove(t.id, e)}
+                        onTouchEnd={() => handlers.onTouchEnd(t.id)}
+                      >
+                        <div onClick={() => onEditTransaction?.(t)} className={`flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-stone-50 transition-transform ${isSwipedOpen ? '-translate-x-16' : ''}`}>
+                          <div className={`w-10 h-10 rounded-full ${isPayment ? 'bg-emerald-100' : cat.color} flex items-center justify-center text-lg flex-shrink-0`}>
+                            {isPayment ? '💳' : cat.emoji}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-stone-800 text-sm">{t.name}</p>
+                            <p className="text-xs text-stone-400">
+                              {isPayment ? 'Payment' : t.category.charAt(0).toUpperCase() + t.category.slice(1)}
+                            </p>
+                          </div>
+                          <p className={`font-semibold text-sm ${isPayment || t.type === 'income' ? 'text-emerald-600' : 'text-stone-800'}`}>
+                            {isPayment || t.type === 'income' ? '+' : '-'}{fmt(t.amount)}
                           </p>
                         </div>
-                        <p className={`font-semibold text-sm ${isPayment || t.type === 'income' ? 'text-emerald-600' : 'text-stone-800'}`}>
-                          {isPayment || t.type === 'income' ? '+' : '-'}{fmt(t.amount)}
-                        </p>
+                        {isSwipedOpen && (
+                          <button onClick={handleDelete} className="absolute right-0 top-0 h-full bg-red-500 text-white px-4 flex items-center justify-center font-semibold">
+                            <Trash2 size={18} />
+                          </button>
+                        )}
                       </div>
                     )
                   })}
