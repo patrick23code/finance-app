@@ -229,7 +229,7 @@ export default function DebtDetailPage({ debt, onBack, onEditTransaction }) {
         <>
           <div className="fixed inset-0 bg-black/40 z-50" onClick={() => setConfirmDelete(false)} />
           <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#E8E4DE] rounded-t-3xl max-h-[92vh] overflow-y-auto">
-            <div className="max-w-md mx-auto px-4 pt-4 pb-10">
+            <div className="max-w-md mx-auto px-4 pt-4 pb-20">
               <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-6" />
               <div className="bg-red-50 rounded-2xl p-4">
                 <p className="text-sm font-semibold text-red-600 mb-4">Delete {isCC ? 'credit card' : isAccount ? 'account' : 'debt'}?</p>
