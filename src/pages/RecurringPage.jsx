@@ -49,6 +49,15 @@ export default function RecurringPage() {
   const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
   const totalMonthly = recurring.reduce((s, r) => s + (r.amount || 0), 0)
 
+  const upcomingDebts = debts
+    .filter(d => d.dueDay)
+    .sort((a, b) => {
+      const dayA = a.dueDay <= today.getDate() ? a.dueDay + 31 : a.dueDay
+      const dayB = b.dueDay <= today.getDate() ? b.dueDay + 31 : b.dueDay
+      return dayA - dayB
+    })
+    .slice(0, 5)
+
   if (loading) return (
     <div className="flex items-center justify-center min-h-svh bg-[#E8E4DE]">
       <div className="text-stone-400">Loading...</div>
@@ -67,6 +76,27 @@ export default function RecurringPage() {
             <p className="text-stone-400 text-xs font-medium uppercase tracking-wide mb-1">Total monthly</p>
             <p className="text-4xl font-bold text-white tracking-tight">{fmt(totalMonthly)}</p>
             <p className="text-stone-500 text-xs mt-1">{recurring.length} recurring expense{recurring.length !== 1 ? 's' : ''}</p>
+          </div>
+        )}
+
+        {/* Upcoming Debt Payments */}
+        {upcomingDebts.length > 0 && (
+          <div className="mb-6">
+            <p className="text-xs font-semibold text-stone-500 tracking-wide uppercase mb-3">Upcoming debt payments</p>
+            <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none">
+              {upcomingDebts.map(d => {
+                const dueDate = new Date(today.getFullYear(), today.getMonth(), d.dueDay)
+                if (dueDate < today) dueDate.setMonth(dueDate.getMonth() + 1)
+                const monthLabel = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()
+                return (
+                  <div key={d.id} className="bg-white rounded-2xl p-3 min-w-[130px] shadow-sm flex-shrink-0">
+                    <p className="text-[10px] font-semibold text-stone-400 mb-1">{monthLabel}</p>
+                    <p className="font-semibold text-stone-800 text-sm leading-tight">{d.name}</p>
+                    <p className="text-stone-600 text-sm font-medium mt-1">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(d.monthly)}</p>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         )}
 

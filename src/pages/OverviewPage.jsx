@@ -101,30 +101,6 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
           </div>
         </div>
 
-        {/* Upcoming Payments */}
-        {upcoming.length > 0 && (
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-stone-500 tracking-wide uppercase">Upcoming</span>
-              <button className="text-xs text-stone-500">View all</button>
-            </div>
-            <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none">
-              {upcoming.map(d => {
-                const dueDate = new Date(today.getFullYear(), today.getMonth(), d.dueDay)
-                if (dueDate < today) dueDate.setMonth(dueDate.getMonth() + 1)
-                const monthLabel = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()
-                return (
-                  <div key={d.id} className="bg-white rounded-2xl p-3 min-w-[130px] shadow-sm flex-shrink-0">
-                    <p className="text-[10px] font-semibold text-stone-400 mb-1">{monthLabel}</p>
-                    <p className="font-semibold text-stone-800 text-sm leading-tight">{d.name}</p>
-                    <p className="text-stone-600 text-sm font-medium mt-1">{fmtShort(d.monthly)}</p>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
         {/* Debt Groups */}
         {Object.entries(byType).map(([type, items]) => (
           <div key={type} className="mb-4">
