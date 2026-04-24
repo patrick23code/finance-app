@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { ChevronLeft, Trash2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCollection, deleteDocument, updateDocument } from '../hooks/useFirestore'
@@ -41,6 +41,8 @@ export default function DebtDetailPage({ debt, onBack, onEditTransaction }) {
   const { data: debts } = useCollection('debts', user?.uid)
   const { data: accounts } = useCollection('accounts', user?.uid)
   const { swiped, setSwiped, handlers } = useSwipeDelete()
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const related = useMemo(() => {
     return transactions.filter(t =>
@@ -61,19 +63,35 @@ export default function DebtDetailPage({ debt, onBack, onEditTransaction }) {
   const isAccount = ['checking', 'savings', 'cash'].includes(debt.type)
   const utilPct = isCC && debt.creditLimit ? Math.min(100, (debt.remaining / debt.creditLimit) * 100) : null
 
+  async function handleDelete() {
+    setDeleting(true)
+    try {
+      await deleteDocument('debts', debt.id)
+      onBack()
+    } catch (e) {
+      console.warn('Delete failed:', e)
+      setDeleting(false)
+    }
+  }
+
   return (
     <div className="min-h-svh bg-[#E8E4DE] pb-24">
       <div className="max-w-md mx-auto px-4 pt-14">
 
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <button onClick={onBack} className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-sm">
-            <ChevronLeft size={20} className="text-stone-600" />
-          </button>
-          <div>
-            {debt.bank && <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide">{debt.bank}</p>}
-            <h1 className="text-xl font-bold text-stone-800 tracking-tight">{debt.name}</h1>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <button onClick={onBack} className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-sm">
+              <ChevronLeft size={20} className="text-stone-600" />
+            </button>
+            <div>
+              {debt.bank && <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide">{debt.bank}</p>}
+              <h1 className="text-xl font-bold text-stone-800 tracking-tight">{debt.name}</h1>
+            </div>
           </div>
+          <button onClick={() => setConfirmDelete(true)} className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-sm">
+            <Trash2 size={20} className="text-red-500" />
+          </button>
         </div>
 
         {/* Summary Card — hidden for bank accounts */}
@@ -206,6 +224,27 @@ export default function DebtDetailPage({ debt, onBack, onEditTransaction }) {
           })
         )}
       </div>
+
+      {confirmDelete && (
+        <>
+          <div className="fixed inset-0 bg-black/40 z-50" onClick={() => setConfirmDelete(false)} />
+          <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#E8E4DE] rounded-t-3xl max-h-[92vh] overflow-y-auto">
+            <div className="max-w-md mx-auto px-4 pt-4 pb-10">
+              <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-6" />
+              <div className="bg-red-50 rounded-2xl p-4">
+                <p className="text-sm font-semibold text-red-600 mb-4">Delete {isCC ? 'credit card' : isAccount ? 'account' : 'debt'}?</p>
+                <p className="text-xs text-red-500 mb-4">This will delete <strong>{debt.name}</strong> and all its linked transactions.</p>
+                <div className="flex gap-2">
+                  <button onClick={() => setConfirmDelete(false)}
+                    className="flex-1 py-2.5 rounded-xl bg-stone-100 text-stone-600 text-sm font-semibold">Cancel</button>
+                  <button onClick={handleDelete} disabled={deleting}
+                    className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold disabled:opacity-50">Delete</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }
