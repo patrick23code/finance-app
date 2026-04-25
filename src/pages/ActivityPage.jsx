@@ -126,7 +126,7 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
         </div>
 
         {/* Calendar Grid */}
-        <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
+        <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm animate-scale-in">
           <div className="grid grid-cols-7 gap-1 mb-2">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
               <div key={day} className="text-center text-xs font-semibold text-stone-400 py-2">
@@ -186,7 +186,7 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
         </div>
 
         {/* Summary Card */}
-        <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
+        <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm animate-scale-in" style={{ animationDelay: '60ms' }}>
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1 flex flex-col items-center">
               <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-0.5">Income</p>
@@ -216,8 +216,8 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
             <p className="text-sm mt-1">Tap Quick add to log your first transaction</p>
           </div>
         ) : (
-          grouped.map(([date, txns]) => (
-            <div key={date} className="mb-4">
+          grouped.map(([date, txns], idx) => (
+            <div key={date} className="mb-4 animate-fade-in-up" style={{ animationDelay: `${idx * 50}ms` }}>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-stone-500 tracking-wide">{formatDateLabel(date)}</span>
                 <span className="text-xs text-stone-400">{txns.length} {txns.length === 1 ? 'entry' : 'entries'}</span>

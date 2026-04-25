@@ -87,7 +87,7 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
         </div>
 
         {/* Total Balance Card */}
-        <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
+        <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm animate-scale-in">
           <p className="text-stone-500 text-xs font-medium tracking-wide uppercase mb-1">Total balance</p>
           <p className="text-4xl font-bold text-stone-800 tracking-tight mb-3">{fmt(totals.total)}</p>
 
@@ -112,8 +112,8 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
         </div>
 
         {/* Debt Groups */}
-        {Object.entries(byType).map(([type, items]) => (
-          <div key={type} className="mb-4">
+        {Object.entries(byType).map(([type, items], idx) => (
+          <div key={type} className="mb-4 animate-fade-in-up" style={{ animationDelay: `${idx * 60}ms` }}>
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold text-stone-500 tracking-wide uppercase">
                 {DEBT_LABELS[type]} · {items.length}
@@ -318,8 +318,8 @@ function SettingsSheet({ isOpen, onClose, user, recurring, accounts, debts, tran
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-stone-50 rounded-t-3xl max-h-[92vh] overflow-y-auto">
+      <div className="fixed inset-0 bg-black/40 z-50 animate-fade-in" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-stone-50 rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
         <div className="max-w-md mx-auto px-4 pt-4 pb-24">
           <div className="flex justify-between items-center mb-4">
             <div className="w-10 h-1 bg-stone-300 rounded-full" />
@@ -505,8 +505,8 @@ function SettingItem({ icon, iconBg, label, description, onClick }) {
 function ThemeModal({ theme, setTheme, onClose }) {
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-stone-50 rounded-t-3xl max-h-[92vh] overflow-y-auto">
+      <div className="fixed inset-0 bg-black/40 z-50 animate-fade-in" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-stone-50 rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
         <div className="max-w-md mx-auto px-4 pt-4 pb-20">
           <div className="flex justify-between items-center mb-5">
             <button onClick={onClose} className="text-stone-500 font-medium text-[15px]">Cancel</button>
@@ -549,8 +549,8 @@ function ExportModal({ onClose }) {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-stone-50 rounded-t-3xl max-h-[92vh] overflow-y-auto">
+      <div className="fixed inset-0 bg-black/40 z-50 animate-fade-in" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-stone-50 rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
         <div className="max-w-md mx-auto px-4 pt-4 pb-20">
           <div className="flex justify-between items-center mb-5">
             <button onClick={onClose} className="text-stone-500 font-medium text-[15px]">Cancel</button>
@@ -581,8 +581,8 @@ function ExportModal({ onClose }) {
 function AccountsModal({ accounts, onClose }) {
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-stone-50 rounded-t-3xl max-h-[92vh] overflow-y-auto">
+      <div className="fixed inset-0 bg-black/40 z-50 animate-fade-in" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-stone-50 rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
         <div className="max-w-md mx-auto px-4 pt-4 pb-20">
           <div className="flex justify-between items-center mb-5">
             <button onClick={onClose} className="text-stone-500 font-medium text-[15px]">Done</button>
@@ -615,8 +615,8 @@ function RecurringSettingsTab({ recurring, payFromOptions, userId, onEdit, onClo
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-stone-50 rounded-t-3xl max-h-[92vh] overflow-y-auto">
+      <div className="fixed inset-0 bg-black/40 z-50 animate-fade-in" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-stone-50 rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
         <div className="max-w-md mx-auto px-4 pt-4 pb-20">
           <div className="flex justify-between items-center mb-5">
             <button onClick={onClose} className="text-stone-500 font-medium text-[15px]">Done</button>
@@ -715,8 +715,8 @@ function RecurringFormModal({ item, payFromOptions, userId, onClose }) {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#E8E4DE] rounded-t-3xl max-h-[92vh] overflow-y-auto">
+      <div className="fixed inset-0 bg-black/40 z-50 animate-fade-in" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#E8E4DE] rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
         <div className="max-w-md mx-auto px-4 pt-4 pb-20">
           <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-4" />
 
@@ -813,8 +813,8 @@ function CategoriesTab({ onClose }) {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-stone-50 rounded-t-3xl max-h-[92vh] overflow-y-auto">
+      <div className="fixed inset-0 bg-black/40 z-50 animate-fade-in" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-stone-50 rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
         <div className="max-w-md mx-auto px-4 pt-4 pb-20">
           <div className="flex justify-between items-center mb-5">
             <button onClick={onClose} className="text-stone-500 font-medium text-[15px]">Done</button>
@@ -940,8 +940,8 @@ function CategoryEditor({ category, onClose, onDelete, onSave }) {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#E8E4DE] rounded-t-3xl max-h-[92vh] overflow-y-auto">
+      <div className="fixed inset-0 bg-black/40 z-50 animate-fade-in" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#E8E4DE] rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
         <div className="max-w-md mx-auto px-4 pt-4 pb-20">
           <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-4" />
 
@@ -1005,8 +1005,8 @@ function AddCategoryForm({ type, onClose, onAdd }) {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#E8E4DE] rounded-t-3xl max-h-[92vh] overflow-y-auto">
+      <div className="fixed inset-0 bg-black/40 z-50 animate-fade-in" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#E8E4DE] rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
         <div className="max-w-md mx-auto px-4 pt-4 pb-20">
           <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-4" />
 

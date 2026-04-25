@@ -130,7 +130,7 @@ export default function EditTransactionSheet({ transaction, onClose }) {
       <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
 
       {/* Full-screen sheet */}
-      <div className="fixed inset-0 z-50 flex flex-col" style={{ top: '5%' }}>
+      <div className="fixed inset-0 z-50 flex flex-col animate-slide-up" style={{ top: '5%' }}>
         <div className="relative bg-white rounded-t-3xl flex-1 overflow-y-auto mx-auto w-full max-w-md shadow-2xl">
 
           {/* Header */}
@@ -308,8 +308,8 @@ export default function EditTransactionSheet({ transaction, onClose }) {
       {/* Category Picker Sheet */}
       {activeSheet === 'category' && (
         <>
-          <div className="fixed inset-0 bg-black/40 z-[60]" onClick={() => setActiveSheet(null)} />
-          <div className="fixed bottom-0 left-0 right-0 z-[60] bg-white rounded-t-3xl max-h-[75vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/40 z-[60] animate-fade-in" onClick={() => setActiveSheet(null)} />
+          <div className="fixed bottom-0 left-0 right-0 z-[60] bg-white rounded-t-3xl max-h-[75vh] overflow-y-auto animate-slide-up">
             <div className="max-w-md mx-auto px-4 pt-4 pb-10">
               <div className="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-4" />
               <h3 className="text-[17px] font-bold text-stone-800 text-center mb-4">Category</h3>
@@ -335,8 +335,8 @@ export default function EditTransactionSheet({ transaction, onClose }) {
       {/* Type Picker Sheet */}
       {activeSheet === 'type' && (
         <>
-          <div className="fixed inset-0 bg-black/40 z-[60]" onClick={() => setActiveSheet(null)} />
-          <div className="fixed bottom-0 left-0 right-0 z-[60] bg-white rounded-t-3xl">
+          <div className="fixed inset-0 bg-black/40 z-[60] animate-fade-in" onClick={() => setActiveSheet(null)} />
+          <div className="fixed bottom-0 left-0 right-0 z-[60] bg-white rounded-t-3xl animate-slide-up">
             <div className="max-w-md mx-auto px-4 pt-4 pb-10">
               <div className="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-4" />
               <h3 className="text-[17px] font-bold text-stone-800 text-center mb-4">Type</h3>
@@ -362,8 +362,8 @@ export default function EditTransactionSheet({ transaction, onClose }) {
       {/* Account Picker Sheet */}
       {activeSheet === 'account' && (
         <>
-          <div className="fixed inset-0 bg-black/40 z-[60]" onClick={() => setActiveSheet(null)} />
-          <div className="fixed bottom-0 left-0 right-0 z-[60] bg-white rounded-t-3xl">
+          <div className="fixed inset-0 bg-black/40 z-[60] animate-fade-in" onClick={() => setActiveSheet(null)} />
+          <div className="fixed bottom-0 left-0 right-0 z-[60] bg-white rounded-t-3xl animate-slide-up">
             <div className="max-w-md mx-auto px-4 pt-4 pb-10">
               <div className="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-4" />
               <h3 className="text-[17px] font-bold text-stone-800 text-center mb-4">Account</h3>

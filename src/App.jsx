@@ -44,24 +44,28 @@ function AppShell() {
 
   return (
     <div className="relative min-h-svh">
-      {tab === 'overview' && <OverviewPage onNavigate={setTab} onDebtClick={setSelectedDebt} />}
+      {tab === 'overview' && <div key="overview" className="animate-fade-in-up"><OverviewPage onNavigate={setTab} onDebtClick={setSelectedDebt} /></div>}
       {tab === 'activity' && (
-        <ActivityPage
-          onNavigate={setTab}
-          onEditTransaction={setEditTransaction}
-        />
+        <div key="activity" className="animate-fade-in-up">
+          <ActivityPage
+            onNavigate={setTab}
+            onEditTransaction={setEditTransaction}
+          />
+        </div>
       )}
-      {tab === 'add' && <AddPage onNavigate={setTab} />}
+      {tab === 'add' && <div key="add" className="animate-fade-in-up"><AddPage onNavigate={setTab} /></div>}
       {tab === 'add-transaction' && (
-        <AddTransactionPage
-          onNavigate={setTab}
-          editTransaction={editTransaction}
-          onDone={() => { setEditTransaction(null); setTab('activity') }}
-        />
+        <div key="add-tx" className="animate-fade-in-up">
+          <AddTransactionPage
+            onNavigate={setTab}
+            editTransaction={editTransaction}
+            onDone={() => { setEditTransaction(null); setTab('activity') }}
+          />
+        </div>
       )}
-      {tab === 'wealth' && <WealthPage onNavigate={setTab} onAccountClick={setSelectedDebt} />}
-      {tab === 'recurring' && <RecurringPage />}
-      {tab === 'stats' && <StatsPage />}
+      {tab === 'wealth' && <div key="wealth" className="animate-fade-in-up"><WealthPage onNavigate={setTab} onAccountClick={setSelectedDebt} /></div>}
+      {tab === 'recurring' && <div key="recurring" className="animate-fade-in-up"><RecurringPage /></div>}
+      {tab === 'stats' && <div key="stats" className="animate-fade-in-up"><StatsPage /></div>}
       <BottomNav active={tab} onChange={setTab} />
 
       {/* Edit Transaction Sheet */}
