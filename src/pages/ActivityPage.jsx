@@ -50,6 +50,7 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
 
   const now = new Date()
   const [offset, setOffset] = useState(0) // 0 = this month, -1 = last month, etc.
+  const [selectedDay, setSelectedDay] = useState(null) // null = show all month, or YYYY-MM-DD to filter
 
   const selectedDate = useMemo(() => {
     const d = new Date(now.getFullYear(), now.getMonth() + offset, 1)
@@ -63,10 +64,13 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
 
   const monthLabel = selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 
-  const monthTransactions = useMemo(() =>
-    transactions.filter(t => (t.date || '').startsWith(monthStr)),
-    [transactions, monthStr]
-  )
+  const monthTransactions = useMemo(() => {
+    let filtered = transactions.filter(t => (t.date || '').startsWith(monthStr))
+    if (selectedDay) {
+      filtered = filtered.filter(t => t.date === selectedDay)
+    }
+    return filtered
+  }, [transactions, monthStr, selectedDay])
 
   const income = monthTransactions.filter(t => t.type === 'income').reduce((s, t) => s + (t.amount || 0), 0)
   const expenses = monthTransactions.filter(t => t.type === 'expense').reduce((s, t) => s + (t.amount || 0), 0)
@@ -113,6 +117,11 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
   return (
     <div className="min-h-svh bg-[#E8E4DE] pb-24 relative">
       <div className="max-w-md mx-auto px-4 pt-14">
+        {selectedDay && (
+          <p className="text-sm text-stone-500 mb-2">
+            {new Date(selectedDay + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+          </p>
+        )}
         {/* Month Navigator */}
         <div className="flex items-center justify-between mb-4">
           <button onClick={() => setOffset(o => o - 1)} className="w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-sm active:scale-95 transition-transform">
@@ -140,35 +149,52 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
           <div className="grid grid-cols-7 gap-1">
             {calendarDays.map((day, i) => {
               const isToday = isCurrentMonth && day && day.dateStr === todayStr
+              const isSelected = day && day.dateStr === selectedDay
               const hasTransaction = day && dailyTotals[day.dateStr] > 0
 
               return (
-                <div
+                <button
                   key={i}
-                  className={`aspect-square flex flex-col items-center justify-center rounded-lg text-xs font-medium transition-all ${
+                  onClick={() => {
+                    if (day) {
+                      setSelectedDay(isSelected ? null : day.dateStr)
+                    }
+                  }}
+                  disabled={!day}
+                  className={`aspect-square flex flex-col items-center justify-center rounded-lg text-xs font-medium transition-all cursor-pointer disabled:cursor-default ${
                     !day
                       ? ''
+                      : isSelected
+                      ? 'bg-stone-800 text-white shadow-md'
                       : isToday
                       ? 'bg-orange-200 text-stone-800'
                       : hasTransaction
-                      ? 'bg-stone-50 text-stone-700'
-                      : 'text-stone-400'
+                      ? 'bg-stone-50 text-stone-700 hover:bg-stone-100'
+                      : 'text-stone-400 hover:bg-stone-50'
                   }`}
                 >
                   {day && (
                     <>
                       <span className="text-sm">{day.date}</span>
                       {hasTransaction && (
-                        <span className="text-[10px] text-orange-500 font-semibold">
+                        <span className={`text-[10px] font-semibold ${isSelected ? 'text-orange-300' : 'text-orange-500'}`}>
                           ${dailyTotals[day.dateStr].toLocaleString()}
                         </span>
                       )}
                     </>
                   )}
-                </div>
+                </button>
               )
             })}
           </div>
+          {selectedDay && (
+            <button
+              onClick={() => setSelectedDay(null)}
+              className="mt-3 w-full py-2 text-sm text-stone-600 bg-stone-100 rounded-lg font-medium hover:bg-stone-200 transition-colors"
+            >
+              Clear filter
+            </button>
+          )}
         </div>
 
         {/* Summary Card */}
