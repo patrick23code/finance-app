@@ -3,23 +3,11 @@ import { Plus, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCollection, deleteDocument, updateDocument } from '../hooks/useFirestore'
 import { useSwipeDelete } from '../hooks/useSwipeDelete'
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../constants/categories'
 
-const CATEGORY_ICONS = {
-  cigarettes: { emoji: '🚬', color: 'bg-stone-600' },
-  gas: { emoji: '⛽', color: 'bg-red-500' },
-  groceries: { emoji: '🛒', color: 'bg-green-600' },
-  food: { emoji: '🍔', color: 'bg-orange-500' },
-  coffee: { emoji: '☕', color: 'bg-amber-700' },
-  transport: { emoji: '🚗', color: 'bg-blue-500' },
-  entertainment: { emoji: '🎬', color: 'bg-purple-500' },
-  health: { emoji: '💊', color: 'bg-pink-500' },
-  shopping: { emoji: '🛍️', color: 'bg-yellow-500' },
-  utilities: { emoji: '💡', color: 'bg-cyan-500' },
-  rent: { emoji: '🏠', color: 'bg-teal-600' },
-  salary: { emoji: '💰', color: 'bg-emerald-500' },
-  freelance: { emoji: '💻', color: 'bg-indigo-500' },
-  other: { emoji: '📦', color: 'bg-stone-400' },
-}
+const ALL_CATEGORIES = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES]
+const CATEGORY_MAP = Object.fromEntries(ALL_CATEGORIES.map(c => [c.id, c]))
+const DEFAULT_CAT = { emoji: '📦', color: 'bg-stone-400' }
 
 function fmtMoney(n, isIncome) {
   const s = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Math.abs(n))
@@ -207,7 +195,7 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
             <div className="w-px bg-stone-100 self-stretch mx-1" />
             <div className="flex-1 flex flex-col items-center">
               <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-0.5">Expenses</p>
-              <p className="text-lg font-bold text-stone-800">-${expenses.toLocaleString()}</p>
+              <p className="text-lg font-bold text-red-500">-${expenses.toLocaleString()}</p>
             </div>
             <div className="w-px bg-stone-100 self-stretch mx-1" />
             <div className="flex-1 flex flex-col items-center">
@@ -236,7 +224,6 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
               </div>
               <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
                 {txns.map((t, i) => {
-                  const cat = CATEGORY_ICONS[t.category] || CATEGORY_ICONS.other
                   const isSwipedOpen = swiped === t.id
 
                   async function handleDelete() {
@@ -267,6 +254,8 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
                     }
                   }
 
+                  const cat = CATEGORY_MAP[t.category] || DEFAULT_CAT
+
                   return (
                     <div key={t.id} className={`relative overflow-hidden ${i < txns.length - 1 ? 'border-b border-stone-100' : ''}`}
                       onTouchStart={(e) => handlers.onTouchStart(t.id, e)}
@@ -284,7 +273,7 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
                             {t.cardName && ` · ${t.cardName}`}
                           </p>
                         </div>
-                        <p className={`font-semibold text-sm ${t.type === 'income' ? 'text-emerald-600' : 'text-stone-800'}`}>
+                        <p className={`font-semibold text-sm ${t.type === 'income' ? 'text-emerald-600' : 'text-red-500'}`}>
                           {fmtMoney(t.amount, t.type === 'income')}
                         </p>
                       </div>

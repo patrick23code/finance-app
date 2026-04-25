@@ -2,6 +2,10 @@ import { useMemo } from 'react'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { useAuth } from '../context/AuthContext'
 import { useCollection } from '../hooks/useFirestore'
+import { EXPENSE_CATEGORIES } from '../constants/categories'
+
+const CAT_COLOR_MAP = Object.fromEntries(EXPENSE_CATEGORIES.map(c => [c.id, c.color]))
+const CAT_EMOJI_MAP = Object.fromEntries(EXPENSE_CATEGORIES.map(c => [c.id, c.emoji]))
 
 const DEBT_COLORS = {
   loan: '#44403c',
@@ -137,16 +141,30 @@ export default function StatsPage() {
           <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
             <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Spending by category</p>
             <div className="flex flex-col gap-2">
-              {categoryBreakdown.map(item => {
+              {categoryBreakdown.map((item, idx) => {
                 const pct = thisMonthExpenses ? Math.round((item.total / thisMonthExpenses) * 100) : 0
+                const emoji = CAT_EMOJI_MAP[item.category] || '📦'
+                // Convert bg-* class to inline color for the bar
+                const bgClass = CAT_COLOR_MAP[item.category] || 'bg-stone-400'
+                const barColors = {
+                  'bg-stone-500': '#78716c', 'bg-red-400': '#f87171', 'bg-green-500': '#22c55e',
+                  'bg-orange-400': '#fb923c', 'bg-amber-700': '#b45309', 'bg-blue-500': '#3b82f6',
+                  'bg-purple-500': '#a855f7', 'bg-pink-500': '#ec4899', 'bg-yellow-400': '#facc15',
+                  'bg-cyan-500': '#06b6d4', 'bg-teal-600': '#0d9488', 'bg-emerald-600': '#059669',
+                  'bg-indigo-500': '#6366f1', 'bg-stone-400': '#a8a29e',
+                }
+                const barColor = barColors[bgClass] || '#a8a29e'
                 return (
                   <div key={item.category}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-stone-700 capitalize">{item.category}</span>
-                      <span className="text-sm text-stone-500">{fmtFull(item.total)} ({pct}%)</span>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">{emoji}</span>
+                        <span className="text-sm font-medium text-stone-700 capitalize">{item.category}</span>
+                      </div>
+                      <span className="text-sm text-stone-500">{fmtFull(item.total)} <span className="text-stone-400">({pct}%)</span></span>
                     </div>
-                    <div className="w-full h-1 bg-stone-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                    <div className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: barColor }} />
                     </div>
                   </div>
                 )

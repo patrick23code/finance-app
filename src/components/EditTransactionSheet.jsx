@@ -318,7 +318,7 @@ export default function EditTransactionSheet({ transaction, onClose }) {
                   <button
                     key={c.id}
                     onClick={() => { setTxCategory(c.id); setActiveSheet(null) }}
-                    className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl transition-all active:scale-95 ${txCategory === c.id ? 'bg-stone-800' : 'bg-stone-50 hover:bg-stone-100'}`}
+                    className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl transition-all active:scale-95 ${txCategory === c.id ? `${c.color} shadow-md` : 'bg-stone-50 hover:bg-stone-100'}`}
                   >
                     <span className="text-2xl">{c.emoji}</span>
                     <span className={`text-[10px] font-semibold leading-tight text-center ${txCategory === c.id ? 'text-white' : 'text-stone-500'}`}>

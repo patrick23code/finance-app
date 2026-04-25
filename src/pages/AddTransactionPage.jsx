@@ -132,9 +132,9 @@ export default function AddTransactionPage({ onNavigate }) {
             <div className="grid grid-cols-4 gap-2">
               {categories.map(c => (
                 <button key={c.id} onClick={() => setTxCategory(c.id)}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all active:scale-95 ${txCategory === c.id ? 'bg-stone-800' : 'bg-stone-50'}`}>
+                  className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all active:scale-95 ${txCategory === c.id ? `${c.color} shadow-md` : 'bg-stone-50'}`}>
                   <span className="text-xl">{c.emoji}</span>
-                  <span className={`text-[9px] font-medium leading-tight text-center ${txCategory === c.id ? 'text-white' : 'text-stone-500'}`}>
+                  <span className={`text-[9px] font-semibold leading-tight text-center ${txCategory === c.id ? 'text-white' : 'text-stone-500'}`}>
                     {c.label}
                   </span>
                 </button>

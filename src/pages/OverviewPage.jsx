@@ -240,12 +240,16 @@ function DebtCard({ debt, color, onClick }) {
         <div className="flex gap-0.5 mt-3 mb-2">
           {Array.from({ length: segments }).map((_, i) => {
             const filled = i < Math.round((pct / 100) * segments)
-            return <div key={i} className={`flex-1 h-1.5 rounded-sm ${filled ? 'bg-emerald-500' : 'bg-stone-150'}`} style={{ backgroundColor: filled ? '#22c55e' : '#e7e5e4' }} />
+            const barColor = pct >= 85 ? '#ef4444' : pct >= 65 ? '#f97316' : pct >= 40 ? '#f59e0b' : '#22c55e'
+            return <div key={i} className="flex-1 h-1.5 rounded-sm" style={{ backgroundColor: filled ? barColor : '#e7e5e4' }} />
           })}
         </div>
       ) : (
         <div className="w-full h-1.5 bg-stone-100 rounded-full mt-3 mb-2">
-          <div className={`${color} h-full rounded-full transition-all`} style={{ width: `${pct}%` }} />
+          <div
+            className="h-full rounded-full transition-all"
+            style={{ width: `${pct}%`, backgroundColor: pct >= 80 ? '#ef4444' : pct >= 50 ? '#f59e0b' : '#22c55e' }}
+          />
         </div>
       )}
 
