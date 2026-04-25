@@ -80,6 +80,34 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
 
   const grouped = useMemo(() => groupByDate(monthTransactions), [monthTransactions])
 
+  const dailyTotals = useMemo(() => {
+    const totals = {}
+    grouped.forEach(([date, txns]) => {
+      totals[date] = txns.filter(t => t.type === 'expense').reduce((s, t) => s + (t.amount || 0), 0)
+    })
+    return totals
+  }, [grouped])
+
+  const calendarDays = useMemo(() => {
+    const year = selectedDate.getFullYear()
+    const month = selectedDate.getMonth()
+    const firstDay = new Date(year, month, 1).getDay()
+    const lastDate = new Date(year, month + 1, 0).getDate()
+
+    const days = []
+    for (let i = 0; i < firstDay; i++) {
+      days.push(null) // Empty cells for previous month
+    }
+    for (let i = 1; i <= lastDate; i++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`
+      days.push({ date: i, dateStr })
+    }
+    return days
+  }, [selectedDate])
+
+  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], [])
+  const isCurrentMonth = offset === 0
+
   if (loading) return <div className="flex items-center justify-center min-h-svh bg-[#E8E4DE]"><div className="text-stone-400">Loading...</div></div>
 
   return (
@@ -98,6 +126,49 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
           >
             <ChevronRight size={18} className="text-stone-600" />
           </button>
+        </div>
+
+        {/* Calendar Grid */}
+        <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+              <div key={day} className="text-center text-xs font-semibold text-stone-400 py-2">
+                {day}
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {calendarDays.map((day, i) => {
+              const isToday = isCurrentMonth && day && day.dateStr === todayStr
+              const hasTransaction = day && dailyTotals[day.dateStr] > 0
+
+              return (
+                <div
+                  key={i}
+                  className={`aspect-square flex flex-col items-center justify-center rounded-lg text-xs font-medium transition-all ${
+                    !day
+                      ? ''
+                      : isToday
+                      ? 'bg-orange-200 text-stone-800'
+                      : hasTransaction
+                      ? 'bg-stone-50 text-stone-700'
+                      : 'text-stone-400'
+                  }`}
+                >
+                  {day && (
+                    <>
+                      <span className="text-sm">{day.date}</span>
+                      {hasTransaction && (
+                        <span className="text-[10px] text-orange-500 font-semibold">
+                          ${dailyTotals[day.dateStr].toLocaleString()}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </div>
+              )
+            })}
+          </div>
         </div>
 
         {/* Summary Card */}
