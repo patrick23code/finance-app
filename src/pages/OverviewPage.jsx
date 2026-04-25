@@ -69,7 +69,6 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
         <div className="flex items-start justify-between mb-6">
           <div>
             <p className="text-stone-500 text-sm">{dateLabel}</p>
-            <h1 className="text-3xl font-bold text-stone-800 tracking-tight">Debts</h1>
           </div>
           <button onClick={logout} className="w-9 h-9 rounded-full bg-stone-200 flex items-center justify-center mt-1">
             <img src={user?.photoURL} alt="" className="w-9 h-9 rounded-full object-cover" onError={e => e.target.style.display='none'} />
