@@ -2,25 +2,11 @@ import { useState } from 'react'
 import { Plus, Trash2, Repeat } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCollection, addDocument, updateDocument, deleteDocument } from '../hooks/useFirestore'
+import { EXPENSE_CATEGORIES } from '../constants/categories'
 
 const ACCOUNT_ICONS = { checking: '🏦', savings: '💰', cash: '💵' }
 
-const CATEGORIES = [
-  { id: 'cigarettes', label: 'Cigarettes', emoji: '🚬' },
-  { id: 'gas', label: 'Gas', emoji: '⛽' },
-  { id: 'groceries', label: 'Groceries', emoji: '🛒' },
-  { id: 'food', label: 'Food & Dining', emoji: '🍔' },
-  { id: 'coffee', label: 'Coffee', emoji: '☕' },
-  { id: 'transport', label: 'Transport', emoji: '🚗' },
-  { id: 'entertainment', label: 'Entertainment', emoji: '🎬' },
-  { id: 'health', label: 'Health', emoji: '💊' },
-  { id: 'shopping', label: 'Shopping', emoji: '🛍️' },
-  { id: 'utilities', label: 'Utilities', emoji: '💡' },
-  { id: 'rent', label: 'Rent', emoji: '🏠' },
-  { id: 'salary', label: 'Salary', emoji: '💰' },
-  { id: 'freelance', label: 'Freelance', emoji: '💻' },
-  { id: 'other', label: 'Other', emoji: '📦' },
-]
+const CATEGORIES = EXPENSE_CATEGORIES
 
 function fmt(n) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)

@@ -1,7 +1,8 @@
-import { useMemo } from 'react'
-import { ChevronRight, TrendingDown } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { ChevronRight, TrendingDown, Settings } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { useCollection } from '../hooks/useFirestore'
+import { useCollection, addDocument, updateDocument, deleteDocument } from '../hooks/useFirestore'
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../constants/categories'
 
 const DEBT_COLORS = {
   loan: 'bg-stone-700',
@@ -26,6 +27,9 @@ function fmtShort(n) {
 export default function OverviewPage({ onNavigate, onDebtClick }) {
   const { user, logout } = useAuth()
   const { data: debts, loading } = useCollection('debts', user?.uid)
+  const { data: recurring } = useCollection('recurring', user?.uid)
+  const { data: accounts } = useCollection('accounts', user?.uid)
+  const [showSettings, setShowSettings] = useState(false)
 
   const today = new Date()
   const dateLabel = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
@@ -67,7 +71,10 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
       <div className="max-w-md mx-auto px-4 pt-14">
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
-          <div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setShowSettings(true)} className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm">
+              <Settings size={20} className="text-stone-600" />
+            </button>
             <p className="text-stone-500 text-sm">{dateLabel}</p>
           </div>
           <button onClick={logout} className="w-9 h-9 rounded-full bg-stone-200 flex items-center justify-center mt-1">
@@ -139,6 +146,17 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
           </div>
         )}
       </div>
+
+      {showSettings && (
+        <SettingsSheet
+          isOpen={showSettings}
+          onClose={() => setShowSettings(false)}
+          user={user}
+          recurring={recurring}
+          accounts={accounts}
+          debts={debts}
+        />
+      )}
     </div>
   )
 }
@@ -240,6 +258,358 @@ function DebtCard({ debt, color, onClick }) {
           }
         </span>
       </div>
+    </div>
+  )
+}
+
+function SettingsSheet({ isOpen, onClose, user, recurring, accounts, debts }) {
+  const [activeTab, setActiveTab] = useState('recurring')
+  const [showRecurringForm, setShowRecurringForm] = useState(false)
+  const [editRecurring, setEditRecurring] = useState(null)
+  const [theme, setTheme] = useState('light')
+
+  const payFromOptions = [
+    ...debts.filter(d => d.type === 'credit_card').map(c => ({ id: c.id, label: c.name, sourceType: 'card', data: c })),
+    ...accounts.map(a => ({ id: a.id, label: a.name, sourceType: 'account', data: a })),
+  ]
+
+  if (!isOpen) return null
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#E8E4DE] rounded-t-3xl max-h-[92vh] overflow-y-auto">
+        <div className="max-w-md mx-auto px-4 pt-4 pb-20">
+          <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-4" />
+
+          {/* Tab Navigation */}
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={() => setActiveTab('recurring')}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                activeTab === 'recurring'
+                  ? 'bg-stone-800 text-white'
+                  : 'bg-stone-100 text-stone-600'
+              }`}
+            >
+              Recurring
+            </button>
+            <button
+              onClick={() => setActiveTab('categories')}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                activeTab === 'categories'
+                  ? 'bg-stone-800 text-white'
+                  : 'bg-stone-100 text-stone-600'
+              }`}
+            >
+              Categories
+            </button>
+            <button
+              onClick={() => setActiveTab('other')}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                activeTab === 'other'
+                  ? 'bg-stone-800 text-white'
+                  : 'bg-stone-100 text-stone-600'
+              }`}
+            >
+              Other
+            </button>
+          </div>
+
+          {/* Recurring Tab */}
+          {activeTab === 'recurring' && (
+            <RecurringSettingsTab
+              recurring={recurring}
+              payFromOptions={payFromOptions}
+              userId={user.uid}
+              onEdit={(item) => {
+                setEditRecurring(item)
+                setShowRecurringForm(true)
+              }}
+            />
+          )}
+
+          {/* Categories Tab */}
+          {activeTab === 'categories' && (
+            <CategoriesTab />
+          )}
+
+          {/* Other Tab */}
+          {activeTab === 'other' && (
+            <OtherTab theme={theme} setTheme={setTheme} />
+          )}
+        </div>
+      </div>
+
+      {showRecurringForm && (
+        <RecurringFormModal
+          item={editRecurring}
+          payFromOptions={payFromOptions}
+          userId={user.uid}
+          onClose={() => {
+            setShowRecurringForm(false)
+            setEditRecurring(null)
+          }}
+        />
+      )}
+    </>
+  )
+}
+
+function RecurringSettingsTab({ recurring, payFromOptions, userId, onEdit }) {
+  const [showForm, setShowForm] = useState(false)
+
+  return (
+    <div className="flex flex-col gap-3">
+      <button
+        onClick={() => setShowForm(true)}
+        className="w-full py-3 rounded-2xl bg-stone-800 text-white text-sm font-semibold flex items-center justify-center gap-2"
+      >
+        + Add recurring expense
+      </button>
+
+      {recurring.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-stone-400 font-medium">No recurring expenses</p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {recurring.map(item => (
+            <div
+              key={item.id}
+              onClick={() => onEdit(item)}
+              className="bg-white rounded-2xl p-3 shadow-sm cursor-pointer active:scale-[0.98] transition-transform"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="font-semibold text-stone-800 text-sm">{item.name}</p>
+                  <p className="text-xs text-stone-400">{item.dueDay}th of every month</p>
+                </div>
+                <p className="font-bold text-stone-800">${item.amount}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showForm && (
+        <RecurringFormModal
+          item={null}
+          payFromOptions={payFromOptions}
+          userId={userId}
+          onClose={() => setShowForm(false)}
+        />
+      )}
+    </div>
+  )
+}
+
+function RecurringFormModal({ item, payFromOptions, userId, onClose }) {
+  const [name, setName] = useState(item?.name || '')
+  const [amount, setAmount] = useState(item ? String(item.amount) : '')
+  const [dueDay, setDueDay] = useState(item ? String(item.dueDay) : '')
+  const [category, setCategory] = useState(item?.category || '')
+  const [source, setSource] = useState(item?.cardName || '')
+  const [saving, setSaving] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  async function handleSave() {
+    if (!name || !amount || !dueDay) return
+    setSaving(true)
+    try {
+      const selected = source ? payFromOptions.find(o => o.label === source) : null
+      const payload = {
+        name,
+        amount: parseFloat(amount),
+        dueDay: parseInt(dueDay),
+        category: category || 'other',
+        cardName: source || null,
+        sourceId: selected?.id || null,
+        sourceType: selected?.sourceType || null,
+      }
+      if (item) {
+        await updateDocument('recurring', item.id, payload)
+      } else {
+        await addDocument('recurring', userId, payload)
+      }
+      onClose()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDelete() {
+    setSaving(true)
+    try {
+      await deleteDocument('recurring', item.id)
+      onClose()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#E8E4DE] rounded-t-3xl max-h-[92vh] overflow-y-auto">
+        <div className="max-w-md mx-auto px-4 pt-4 pb-20">
+          <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-4" />
+
+          <div className="flex items-center justify-between mb-5">
+            <button onClick={onClose} className="text-stone-500 font-medium text-[15px]">Cancel</button>
+            <h2 className="text-[17px] font-bold text-stone-800">{item ? 'Edit' : 'New'} recurring</h2>
+            <button onClick={handleSave} disabled={saving || !name || !amount || !dueDay}
+              className="text-stone-800 font-semibold text-[15px] disabled:text-stone-300">Save</button>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
+              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">Name</p>
+              <input type="text" placeholder="e.g. Netflix"
+                value={name} onChange={e => setName(e.target.value)}
+                className="w-full text-[15px] font-semibold text-stone-800 bg-transparent outline-none placeholder:text-stone-300" />
+            </div>
+
+            <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
+              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">Amount</p>
+              <div className="flex items-center gap-1">
+                <span className="text-2xl font-bold text-stone-300">$</span>
+                <input type="number" inputMode="decimal" placeholder="0.00"
+                  value={amount} onChange={e => setAmount(e.target.value)}
+                  className="flex-1 text-2xl font-bold text-stone-800 bg-transparent outline-none placeholder:text-stone-200" />
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
+              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">Due day of month</p>
+              <input type="number" inputMode="numeric" placeholder="e.g. 15" min="1" max="31"
+                value={dueDay} onChange={e => setDueDay(e.target.value)}
+                className="w-full text-[15px] font-semibold text-stone-800 bg-transparent outline-none placeholder:text-stone-300" />
+            </div>
+
+            {payFromOptions.length > 0 && (
+              <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
+                <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Paid from</p>
+                <div className="flex gap-2 flex-wrap">
+                  <button onClick={() => setSource('')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold ${!source ? 'bg-stone-800 text-white' : 'bg-stone-100 text-stone-600'}`}>Other</button>
+                  {payFromOptions.map(o => (
+                    <button key={o.id} onClick={() => setSource(o.label)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold ${source === o.label ? 'bg-stone-800 text-white' : 'bg-stone-100 text-stone-600'}`}>
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {item && !confirmDelete && (
+              <button onClick={() => setConfirmDelete(true)}
+                className="w-full py-3 rounded-2xl border border-red-200 text-red-500 text-sm font-semibold flex items-center justify-center gap-2">
+                Delete recurring
+              </button>
+            )}
+            {item && confirmDelete && (
+              <div className="bg-red-50 rounded-2xl p-4 flex flex-col gap-2">
+                <p className="text-sm font-semibold text-red-600 text-center">Delete this recurring?</p>
+                <div className="flex gap-2">
+                  <button onClick={() => setConfirmDelete(false)}
+                    className="flex-1 py-2.5 rounded-xl bg-stone-100 text-stone-600 text-sm font-semibold">Cancel</button>
+                  <button onClick={handleDelete} disabled={saving}
+                    className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold disabled:opacity-50">Delete</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function CategoriesTab() {
+  return (
+    <div className="flex flex-col gap-4">
+      <div>
+        <p className="text-sm font-semibold text-stone-700 mb-3">Expense Categories</p>
+        <div className="grid grid-cols-4 gap-2">
+          {EXPENSE_CATEGORIES.map(cat => (
+            <div key={cat.id} className="bg-white rounded-2xl p-3 shadow-sm text-center cursor-pointer active:scale-95 transition-transform">
+              <p className="text-2xl mb-1">{cat.emoji}</p>
+              <p className="text-xs font-medium text-stone-700 leading-tight">{cat.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <p className="text-sm font-semibold text-stone-700 mb-3">Income Categories</p>
+        <div className="grid grid-cols-4 gap-2">
+          {INCOME_CATEGORIES.map(cat => (
+            <div key={cat.id} className="bg-white rounded-2xl p-3 shadow-sm text-center cursor-pointer active:scale-95 transition-transform">
+              <p className="text-2xl mb-1">{cat.emoji}</p>
+              <p className="text-xs font-medium text-stone-700 leading-tight">{cat.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <p className="text-xs text-stone-400 text-center mt-2">Category customization coming soon</p>
+    </div>
+  )
+}
+
+function OtherTab({ theme, setTheme }) {
+  function handleExport() {
+    // Placeholder for export functionality
+    alert('Export functionality coming soon')
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div>
+        <p className="text-sm font-semibold text-stone-700 mb-3">Theme</p>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setTheme('light')}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              theme === 'light'
+                ? 'bg-stone-800 text-white'
+                : 'bg-stone-100 text-stone-600'
+            }`}
+          >
+            Light
+          </button>
+          <button
+            onClick={() => setTheme('dark')}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              theme === 'dark'
+                ? 'bg-stone-800 text-white'
+                : 'bg-stone-100 text-stone-600'
+            }`}
+          >
+            Dark
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <p className="text-sm font-semibold text-stone-700 mb-3">Export Data</p>
+        <button
+          onClick={handleExport}
+          className="w-full py-3 rounded-2xl bg-stone-100 text-stone-600 text-sm font-semibold active:scale-95 transition-transform"
+        >
+          Export as JSON
+        </button>
+        <button
+          onClick={handleExport}
+          className="w-full py-3 rounded-2xl bg-stone-100 text-stone-600 text-sm font-semibold active:scale-95 transition-transform mt-2"
+        >
+          Export as CSV
+        </button>
+      </div>
+
+      <p className="text-xs text-stone-400 text-center">More settings coming soon</p>
     </div>
   )
 }
