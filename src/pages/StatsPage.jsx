@@ -21,9 +21,12 @@ function fmtFull(n) {
 export default function StatsPage() {
   const { user } = useAuth()
   const { data: debts, loading: dLoading } = useCollection('debts', user?.uid)
+  const { data: accounts, loading: aLoading } = useCollection('accounts', user?.uid)
   const { data: transactions, loading: tLoading } = useCollection('transactions', user?.uid)
 
   const totalDebt = useMemo(() => debts.reduce((s, d) => s + (d.remaining || 0), 0), [debts])
+  const totalAssets = useMemo(() => accounts.reduce((s, a) => s + (a.balance || 0), 0), [accounts])
+  const netWorth = totalAssets - totalDebt
 
   const thisMonth = useMemo(() => {
     const now = new Date()
@@ -31,46 +34,47 @@ export default function StatsPage() {
     return transactions.filter(t => (t.date || '').startsWith(ms))
   }, [transactions])
 
-  const paidOut = thisMonth.filter(t => t.type === 'expense').reduce((s, t) => s + (t.amount || 0), 0)
-  const interestEst = useMemo(() => {
-    return debts.reduce((s, d) => {
-      if (!d.apr || !d.remaining) return s
-      return s + (d.remaining * (d.apr / 100) / 12)
-    }, 0)
-  }, [debts])
+  const thisMonthExpenses = thisMonth.filter(t => t.type === 'expense').reduce((s, t) => s + (t.amount || 0), 0)
 
-  const savedYTD = useMemo(() => {
-    const now = new Date()
-    const yearStr = `${now.getFullYear()}`
-    return transactions
-      .filter(t => (t.date || '').startsWith(yearStr) && t.type === 'income')
-      .reduce((s, t) => s + (t.amount || 0), 0)
-  }, [transactions])
+  const categoryBreakdown = useMemo(() => {
+    const groups = {}
+    thisMonth
+      .filter(t => t.type === 'expense')
+      .forEach(t => {
+        const cat = t.category || 'other'
+        if (!groups[cat]) groups[cat] = 0
+        groups[cat] += t.amount || 0
+      })
+    return Object.entries(groups)
+      .map(([cat, total]) => ({ category: cat, total }))
+      .sort((a, b) => b.total - a.total)
+  }, [thisMonth])
 
-  const debtFreeDate = useMemo(() => {
-    if (!debts.length) return null
-    const latestEndDate = debts
-      .filter(d => d.endDate)
-      .map(d => d.endDate)
-      .sort()
-      .reverse()[0]
-    return latestEndDate || null
-  }, [debts])
+  const topTransactions = useMemo(() => {
+    return thisMonth
+      .filter(t => t.type === 'expense')
+      .sort((a, b) => (b.amount || 0) - (a.amount || 0))
+      .slice(0, 5)
+  }, [thisMonth])
 
-  const chartData = useMemo(() => {
+  const monthlyTrend = useMemo(() => {
     const months = []
     const now = new Date()
     for (let i = 11; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const monthStr = d.toISOString().slice(0, 7)
+      const monthExpenses = transactions
+        .filter(t => (t.date || '').startsWith(monthStr) && t.type === 'expense')
+        .reduce((s, t) => s + (t.amount || 0), 0)
       months.push({
         label: d.toLocaleDateString('en-US', { month: 'short' }),
-        value: totalDebt,
+        value: monthExpenses,
       })
     }
     return months
-  }, [totalDebt])
+  }, [transactions])
 
-  const breakdown = useMemo(() => {
+  const debtBreakdown = useMemo(() => {
     const groups = {}
     debts.forEach(d => {
       if (!groups[d.type]) groups[d.type] = { label: d.type === 'loan' ? 'Loans' : d.type === 'credit_card' ? 'Credit cards' : 'Personal', total: 0, color: DEBT_COLORS[d.type] }
@@ -79,53 +83,99 @@ export default function StatsPage() {
     return Object.values(groups).sort((a, b) => b.total - a.total)
   }, [debts])
 
-  if (dLoading || tLoading) return <div className="flex items-center justify-center min-h-svh bg-[#E8E4DE]"><div className="text-stone-400">Loading...</div></div>
+  if (dLoading || tLoading || aLoading) return <div className="flex items-center justify-center min-h-svh bg-[#E8E4DE]"><div className="text-stone-400">Loading...</div></div>
 
   return (
     <div className="min-h-svh bg-[#E8E4DE] pb-24">
       <div className="max-w-md mx-auto px-4 pt-14">
-        <p className="text-stone-500 text-sm mb-1">Last 12 months</p>
-        <h1 className="text-3xl font-bold text-stone-800 tracking-tight mb-6">Progress</h1>
+        <p className="text-stone-500 text-sm mb-1">Financial overview</p>
+        <h1 className="text-3xl font-bold text-stone-800 tracking-tight mb-6">Stats</h1>
 
-        {/* Trend Chart */}
-        <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
-          <div className="flex items-start justify-between mb-1">
-            <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide">Total debt trend</p>
+        {/* Net Worth Card */}
+        <div className="bg-stone-800 rounded-2xl p-4 mb-4 shadow-sm">
+          <p className="text-stone-400 text-xs font-medium uppercase tracking-wide mb-3">Net worth</p>
+          <p className={`text-4xl font-bold tracking-tight mb-4 ${netWorth >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            {netWorth >= 0 ? '+' : ''}{fmtFull(netWorth)}
+          </p>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <p className="text-stone-400 text-xs mb-1">Assets</p>
+              <p className="font-semibold text-white">{fmtFull(totalAssets)}</p>
+            </div>
+            <div>
+              <p className="text-stone-400 text-xs mb-1">Debts</p>
+              <p className="font-semibold text-white">-{fmtFull(totalDebt)}</p>
+            </div>
           </div>
-          <p className="text-2xl font-bold text-stone-800 tracking-tight mb-4">-{fmtFull(totalDebt)}</p>
-          <ResponsiveContainer width="100%" height={120}>
-            <AreaChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+        </div>
+
+        {/* Monthly Spending Trend */}
+        <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
+          <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Monthly spending</p>
+          <p className="text-2xl font-bold text-stone-800 tracking-tight mb-4">{fmtFull(thisMonthExpenses)}</p>
+          <ResponsiveContainer width="100%" height={100}>
+            <AreaChart data={monthlyTrend} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
               <defs>
-                <linearGradient id="debtGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#44403c" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#44403c" stopOpacity={0} />
+                <linearGradient id="expenseGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#f87171" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#f87171" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#a8a29e' }} axisLine={false} tickLine={false} />
               <YAxis hide />
               <Tooltip
-                formatter={v => [fmtFull(v), 'Total debt']}
+                formatter={v => [fmtFull(v), 'Spending']}
                 contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontSize: 12 }}
               />
-              <Area type="monotone" dataKey="value" stroke="#44403c" strokeWidth={2} fill="url(#debtGrad)" dot={false} activeDot={{ r: 4, fill: '#44403c' }} />
+              <Area type="monotone" dataKey="value" stroke="#f87171" strokeWidth={2} fill="url(#expenseGrad)" dot={false} activeDot={{ r: 4, fill: '#f87171' }} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <StatCard label="This month" value={fmtFull(paidOut)} sub="paid out" />
-          <StatCard label="Interest" value={fmtFull(interestEst)} sub="this month (est.)" />
-          <StatCard label="Debt-free" value={debtFreeDate || 'N/A'} sub="at current pace" />
-          <StatCard label="Saved" value={fmt(savedYTD)} sub="YTD income" />
-        </div>
+        {/* Category Breakdown */}
+        {categoryBreakdown.length > 0 && (
+          <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
+            <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Spending by category</p>
+            <div className="flex flex-col gap-2">
+              {categoryBreakdown.map(item => {
+                const pct = thisMonthExpenses ? Math.round((item.total / thisMonthExpenses) * 100) : 0
+                return (
+                  <div key={item.category}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium text-stone-700 capitalize">{item.category}</span>
+                      <span className="text-sm text-stone-500">{fmtFull(item.total)} ({pct}%)</span>
+                    </div>
+                    <div className="w-full h-1 bg-stone-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
-        {/* Breakdown */}
-        {breakdown.length > 0 && (
+        {/* Top Transactions */}
+        {topTransactions.length > 0 && (
+          <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
+            <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Top transactions this month</p>
+            <div className="flex flex-col gap-2">
+              {topTransactions.map((t, i) => (
+                <div key={t.id} className="flex items-center justify-between py-2 border-b border-stone-100 last:border-0">
+                  <span className="text-sm text-stone-700">{t.name}</span>
+                  <span className="font-semibold text-stone-800">{fmtFull(t.amount)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Debt Breakdown */}
+        {debtBreakdown.length > 0 && (
           <div className="bg-white rounded-2xl p-4 shadow-sm">
-            <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-4">Breakdown</p>
+            <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-4">Debt breakdown</p>
             <div className="flex flex-col gap-4">
-              {breakdown.map(b => {
+              {debtBreakdown.map(b => {
                 const pct = totalDebt ? Math.round((b.total / totalDebt) * 100) : 0
                 return (
                   <div key={b.label}>
@@ -143,16 +193,6 @@ export default function StatsPage() {
           </div>
         )}
       </div>
-    </div>
-  )
-}
-
-function StatCard({ label, value, sub }) {
-  return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm">
-      <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">{label}</p>
-      <p className="text-xl font-bold text-stone-800 tracking-tight">{value}</p>
-      <p className="text-xs text-stone-400 mt-0.5">{sub}</p>
     </div>
   )
 }
