@@ -126,7 +126,7 @@ function AccountEditSheet({ account, onClose, userId }) {
     <>
       <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#E8E4DE] rounded-t-3xl max-h-[92vh] overflow-y-auto">
-        <div className="max-w-md mx-auto px-4 pt-4 pb-10">
+        <div className="max-w-md mx-auto px-4 pt-4 pb-20">
           <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-4" />
 
           <div className="flex items-center justify-between mb-5">
