@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ChevronRight, TrendingDown, Settings, Plus } from 'lucide-react'
+import { ChevronRight, TrendingDown, Settings, Plus, Zap, Grid3X3, Repeat, Download, Moon, DollarSign, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCollection, addDocument, updateDocument, deleteDocument } from '../hooks/useFirestore'
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../constants/categories'
@@ -29,6 +29,7 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
   const { data: debts, loading } = useCollection('debts', user?.uid)
   const { data: recurring } = useCollection('recurring', user?.uid)
   const { data: accounts } = useCollection('accounts', user?.uid)
+  const { data: transactions } = useCollection('transactions', user?.uid)
   const [showSettings, setShowSettings] = useState(false)
 
   const today = new Date()
@@ -158,6 +159,7 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
           recurring={recurring}
           accounts={accounts}
           debts={debts}
+          transactions={transactions}
         />
       )}
     </div>
@@ -265,11 +267,43 @@ function DebtCard({ debt, color, onClick }) {
   )
 }
 
-function SettingsSheet({ isOpen, onClose, user, recurring, accounts, debts }) {
-  const [activeTab, setActiveTab] = useState('recurring')
+function SettingsSheet({ isOpen, onClose, user, recurring, accounts, debts, transactions }) {
+  const [activeModal, setActiveModal] = useState(null)
   const [showRecurringForm, setShowRecurringForm] = useState(false)
   const [editRecurring, setEditRecurring] = useState(null)
   const [theme, setTheme] = useState('light')
+
+  // Calculate stats
+  const stats = useMemo(() => {
+    const today = new Date()
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+
+    // Total Days: unique transaction dates
+    const uniqueDates = new Set(transactions.map(t => t.date || '').filter(d => d))
+    const totalDays = uniqueDates.size
+
+    // Transactions this month
+    const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
+    const thisMonthTransactions = transactions.filter(t => (t.date || '').startsWith(monthStr))
+    const transactionCount = thisMonthTransactions.length
+
+    // Current Streak: consecutive days with transactions (backwards from today)
+    let streak = 0
+    let checkDate = new Date(today)
+    checkDate.setHours(0, 0, 0, 0)
+    while (true) {
+      const dateStr = checkDate.toISOString().split('T')[0]
+      const hasTransaction = transactions.some(t => t.date === dateStr)
+      if (hasTransaction) {
+        streak++
+        checkDate.setDate(checkDate.getDate() - 1)
+      } else {
+        break
+      }
+    }
+
+    return { streak, totalDays, transactionCount }
+  }, [transactions])
 
   const payFromOptions = [
     ...debts.filter(d => d.type === 'credit_card').map(c => ({ id: c.id, label: c.name, sourceType: 'card', data: c })),
@@ -281,68 +315,144 @@ function SettingsSheet({ isOpen, onClose, user, recurring, accounts, debts }) {
   return (
     <>
       <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#E8E4DE] rounded-t-3xl max-h-[92vh] overflow-y-auto">
-        <div className="max-w-md mx-auto px-4 pt-4 pb-20">
-          <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-4" />
-
-          {/* Tab Navigation */}
-          <div className="flex gap-2 mb-4">
-            <button
-              onClick={() => setActiveTab('recurring')}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                activeTab === 'recurring'
-                  ? 'bg-stone-800 text-white'
-                  : 'bg-stone-100 text-stone-600'
-              }`}
-            >
-              Recurring
-            </button>
-            <button
-              onClick={() => setActiveTab('categories')}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                activeTab === 'categories'
-                  ? 'bg-stone-800 text-white'
-                  : 'bg-stone-100 text-stone-600'
-              }`}
-            >
-              Categories
-            </button>
-            <button
-              onClick={() => setActiveTab('other')}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                activeTab === 'other'
-                  ? 'bg-stone-800 text-white'
-                  : 'bg-stone-100 text-stone-600'
-              }`}
-            >
-              Other
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-stone-50 rounded-t-3xl max-h-[92vh] overflow-y-auto">
+        <div className="max-w-md mx-auto px-4 pt-4 pb-24">
+          <div className="flex justify-between items-center mb-4">
+            <div className="w-10 h-1 bg-stone-300 rounded-full" />
+            <button onClick={onClose} className="p-1 hover:bg-stone-200 rounded-full transition-colors">
+              <X size={20} className="text-stone-600" />
             </button>
           </div>
 
-          {/* Recurring Tab */}
-          {activeTab === 'recurring' && (
-            <RecurringSettingsTab
-              recurring={recurring}
-              payFromOptions={payFromOptions}
-              userId={user.uid}
-              onEdit={(item) => {
-                setEditRecurring(item)
-                setShowRecurringForm(true)
-              }}
+          {/* Profile Card */}
+          <div className="bg-white rounded-3xl p-6 mb-6 shadow-sm">
+            <div className="flex items-center gap-4 mb-6">
+              <img
+                src={user?.photoURL}
+                alt=""
+                className="w-16 h-16 rounded-full object-cover"
+                onError={e => e.target.style.display = 'none'}
+              />
+              <div className="flex-1">
+                <p className="text-lg font-bold text-stone-800">{user?.displayName || user?.email?.split('@')[0]}</p>
+                <p className="text-sm text-stone-500">{user?.email}</p>
+              </div>
+            </div>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-stone-50 rounded-2xl p-3 text-center">
+                <p className="text-2xl font-bold text-stone-800">{stats.streak}</p>
+                <p className="text-xs text-stone-500 font-medium mt-1">Streak</p>
+              </div>
+              <div className="bg-stone-50 rounded-2xl p-3 text-center">
+                <p className="text-2xl font-bold text-stone-800">{stats.totalDays}</p>
+                <p className="text-xs text-stone-500 font-medium mt-1">Total days</p>
+              </div>
+              <div className="bg-stone-50 rounded-2xl p-3 text-center">
+                <p className="text-2xl font-bold text-stone-800">{stats.transactionCount}</p>
+                <p className="text-xs text-stone-500 font-medium mt-1">This month</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Settings Sections */}
+
+          {/* Account Management */}
+          <SettingsSection title="Account Management">
+            <SettingItem
+              icon={<Grid3X3 size={20} />}
+              iconBg="bg-blue-200"
+              label="Category Manager"
+              description="Manage expense & income categories"
+              onClick={() => setActiveModal('categories')}
             />
-          )}
+            <SettingItem
+              icon={<DollarSign size={20} />}
+              iconBg="bg-emerald-200"
+              label="Account Manager"
+              description="Manage bank accounts"
+              onClick={() => setActiveModal('accounts')}
+            />
+          </SettingsSection>
 
-          {/* Categories Tab */}
-          {activeTab === 'categories' && (
-            <CategoriesTab />
-          )}
+          {/* Payments & Planning */}
+          <SettingsSection title="Payments & Planning">
+            <SettingItem
+              icon={<Repeat size={20} />}
+              iconBg="bg-purple-200"
+              label="Recurring"
+              description="Set up recurring expenses"
+              onClick={() => setActiveModal('recurring')}
+            />
+          </SettingsSection>
 
-          {/* Other Tab */}
-          {activeTab === 'other' && (
-            <OtherTab theme={theme} setTheme={setTheme} />
-          )}
+          {/* Data & Preferences */}
+          <SettingsSection title="Data & Preferences">
+            <SettingItem
+              icon={<Download size={20} />}
+              iconBg="bg-orange-200"
+              label="Export Data"
+              description="Export as JSON or CSV"
+              onClick={() => setActiveModal('export')}
+            />
+            <SettingItem
+              icon={<Moon size={20} />}
+              iconBg="bg-pink-200"
+              label="Theme"
+              description="Light or dark mode"
+              onClick={() => setActiveModal('theme')}
+            />
+            <SettingItem
+              icon={<DollarSign size={20} />}
+              iconBg="bg-teal-200"
+              label="Base Currency"
+              description="Set your preferred currency"
+              onClick={() => setActiveModal('currency')}
+            />
+          </SettingsSection>
         </div>
       </div>
+
+      {/* Modals */}
+      {activeModal === 'recurring' && (
+        <div className="fixed inset-0 z-50">
+          <RecurringSettingsTab
+            recurring={recurring}
+            payFromOptions={payFromOptions}
+            userId={user.uid}
+            onEdit={(item) => {
+              setEditRecurring(item)
+              setShowRecurringForm(true)
+            }}
+            onClose={() => setActiveModal(null)}
+          />
+        </div>
+      )}
+
+      {activeModal === 'categories' && (
+        <div className="fixed inset-0 z-50">
+          <CategoriesTab onClose={() => setActiveModal(null)} />
+        </div>
+      )}
+
+      {activeModal === 'theme' && (
+        <div className="fixed inset-0 z-50">
+          <ThemeModal theme={theme} setTheme={setTheme} onClose={() => setActiveModal(null)} />
+        </div>
+      )}
+
+      {activeModal === 'export' && (
+        <div className="fixed inset-0 z-50">
+          <ExportModal onClose={() => setActiveModal(null)} />
+        </div>
+      )}
+
+      {activeModal === 'accounts' && (
+        <div className="fixed inset-0 z-50">
+          <AccountsModal accounts={accounts} onClose={() => setActiveModal(null)} />
+        </div>
+      )}
 
       {showRecurringForm && (
         <RecurringFormModal
@@ -359,51 +469,199 @@ function SettingsSheet({ isOpen, onClose, user, recurring, accounts, debts }) {
   )
 }
 
-function RecurringSettingsTab({ recurring, payFromOptions, userId, onEdit }) {
+function SettingsSection({ title, children }) {
+  return (
+    <div className="mb-6">
+      <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-3 px-1">{title}</p>
+      <div className="space-y-2">
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function SettingItem({ icon, iconBg, label, description, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full bg-white rounded-2xl p-4 flex items-center gap-3 shadow-sm active:bg-stone-50 transition-colors"
+    >
+      <div className={`w-10 h-10 rounded-full ${iconBg} flex items-center justify-center text-stone-700 flex-shrink-0`}>
+        {icon}
+      </div>
+      <div className="flex-1 text-left min-w-0">
+        <p className="font-semibold text-stone-800 text-sm">{label}</p>
+        <p className="text-xs text-stone-500 truncate">{description}</p>
+      </div>
+      <ChevronRight size={18} className="text-stone-400 flex-shrink-0" />
+    </button>
+  )
+}
+
+function ThemeModal({ theme, setTheme, onClose }) {
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-stone-50 rounded-t-3xl max-h-[92vh] overflow-y-auto">
+        <div className="max-w-md mx-auto px-4 pt-4 pb-20">
+          <div className="flex justify-between items-center mb-5">
+            <button onClick={onClose} className="text-stone-500 font-medium text-[15px]">Cancel</button>
+            <h2 className="text-[17px] font-bold text-stone-800">Theme</h2>
+            <div className="w-12" />
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => { setTheme('light'); onClose(); }}
+              className={`flex-1 py-3 rounded-2xl text-sm font-semibold transition-all ${
+                theme === 'light'
+                  ? 'bg-stone-800 text-white'
+                  : 'bg-white text-stone-600 shadow-sm'
+              }`}
+            >
+              Light
+            </button>
+            <button
+              onClick={() => { setTheme('dark'); onClose(); }}
+              className={`flex-1 py-3 rounded-2xl text-sm font-semibold transition-all ${
+                theme === 'dark'
+                  ? 'bg-stone-800 text-white'
+                  : 'bg-white text-stone-600 shadow-sm'
+              }`}
+            >
+              Dark
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function ExportModal({ onClose }) {
+  function handleExport(format) {
+    alert(`Export as ${format} coming soon`)
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-stone-50 rounded-t-3xl max-h-[92vh] overflow-y-auto">
+        <div className="max-w-md mx-auto px-4 pt-4 pb-20">
+          <div className="flex justify-between items-center mb-5">
+            <button onClick={onClose} className="text-stone-500 font-medium text-[15px]">Cancel</button>
+            <h2 className="text-[17px] font-bold text-stone-800">Export Data</h2>
+            <div className="w-12" />
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => handleExport('JSON')}
+              className="w-full py-3 rounded-2xl bg-white text-stone-800 text-sm font-semibold shadow-sm active:bg-stone-50 transition-colors"
+            >
+              Export as JSON
+            </button>
+            <button
+              onClick={() => handleExport('CSV')}
+              className="w-full py-3 rounded-2xl bg-white text-stone-800 text-sm font-semibold shadow-sm active:bg-stone-50 transition-colors"
+            >
+              Export as CSV
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function AccountsModal({ accounts, onClose }) {
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-stone-50 rounded-t-3xl max-h-[92vh] overflow-y-auto">
+        <div className="max-w-md mx-auto px-4 pt-4 pb-20">
+          <div className="flex justify-between items-center mb-5">
+            <button onClick={onClose} className="text-stone-500 font-medium text-[15px]">Done</button>
+            <h2 className="text-[17px] font-bold text-stone-800">Accounts</h2>
+            <div className="w-12" />
+          </div>
+
+          {accounts.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-stone-400 font-medium">No accounts added yet</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {accounts.map(account => (
+                <div key={account.id} className="bg-white rounded-2xl p-4 shadow-sm">
+                  <p className="font-semibold text-stone-800">{account.name}</p>
+                  <p className="text-sm text-stone-500 mt-1">Balance: ${account.balance?.toLocaleString() || '0'}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  )
+}
+
+function RecurringSettingsTab({ recurring, payFromOptions, userId, onEdit, onClose }) {
   const [showForm, setShowForm] = useState(false)
 
   return (
-    <div className="flex flex-col gap-3">
-      <button
-        onClick={() => setShowForm(true)}
-        className="w-full py-3 rounded-2xl bg-stone-800 text-white text-sm font-semibold flex items-center justify-center gap-2"
-      >
-        + Add recurring expense
-      </button>
+    <>
+      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-stone-50 rounded-t-3xl max-h-[92vh] overflow-y-auto">
+        <div className="max-w-md mx-auto px-4 pt-4 pb-20">
+          <div className="flex justify-between items-center mb-5">
+            <button onClick={onClose} className="text-stone-500 font-medium text-[15px]">Done</button>
+            <h2 className="text-[17px] font-bold text-stone-800">Recurring</h2>
+            <div className="w-12" />
+          </div>
 
-      {recurring.length === 0 ? (
-        <div className="text-center py-8">
-          <p className="text-stone-400 font-medium">No recurring expenses</p>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-2">
-          {recurring.map(item => (
-            <div
-              key={item.id}
-              onClick={() => onEdit(item)}
-              className="bg-white rounded-2xl p-3 shadow-sm cursor-pointer active:scale-[0.98] transition-transform"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="font-semibold text-stone-800 text-sm">{item.name}</p>
-                  <p className="text-xs text-stone-400">{item.dueDay}th of every month</p>
-                </div>
-                <p className="font-bold text-stone-800">${item.amount}</p>
-              </div>
+          <button
+            onClick={() => setShowForm(true)}
+            className="w-full py-3 rounded-2xl bg-stone-800 text-white text-sm font-semibold flex items-center justify-center gap-2 mb-4"
+          >
+            + Add recurring expense
+          </button>
+
+          {recurring.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-stone-400 font-medium">No recurring expenses</p>
             </div>
-          ))}
-        </div>
-      )}
+          ) : (
+            <div className="flex flex-col gap-2">
+              {recurring.map(item => (
+                <div
+                  key={item.id}
+                  onClick={() => onEdit(item)}
+                  className="bg-white rounded-2xl p-4 shadow-sm cursor-pointer active:scale-[0.98] transition-transform"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="font-semibold text-stone-800">{item.name}</p>
+                      <p className="text-xs text-stone-400">{item.dueDay}th of every month</p>
+                    </div>
+                    <p className="font-bold text-stone-800">${item.amount}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
-      {showForm && (
-        <RecurringFormModal
-          item={null}
-          payFromOptions={payFromOptions}
-          userId={userId}
-          onClose={() => setShowForm(false)}
-        />
-      )}
-    </div>
+          {showForm && (
+            <RecurringFormModal
+              item={null}
+              payFromOptions={payFromOptions}
+              userId={userId}
+              onClose={() => setShowForm(false)}
+            />
+          )}
+        </div>
+      </div>
+    </>
   )
 }
 
@@ -530,7 +788,7 @@ function RecurringFormModal({ item, payFromOptions, userId, onClose }) {
   )
 }
 
-function CategoriesTab() {
+function CategoriesTab({ onClose }) {
   const [customExpense, setCustomExpense] = useState([])
   const [customIncome, setCustomIncome] = useState([])
   const [editingCat, setEditingCat] = useState(null)
@@ -550,7 +808,17 @@ function CategoriesTab() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <>
+      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-stone-50 rounded-t-3xl max-h-[92vh] overflow-y-auto">
+        <div className="max-w-md mx-auto px-4 pt-4 pb-20">
+          <div className="flex justify-between items-center mb-5">
+            <button onClick={onClose} className="text-stone-500 font-medium text-[15px]">Done</button>
+            <h2 className="text-[17px] font-bold text-stone-800">Categories</h2>
+            <div className="w-12" />
+          </div>
+
+          <div className="flex flex-col gap-4">
       <div>
         <p className="text-sm font-semibold text-stone-700 mb-3">Expense Categories</p>
         <div className="grid grid-cols-4 gap-2">
@@ -654,7 +922,10 @@ function CategoriesTab() {
           }}
         />
       )}
-    </div>
+          </div>
+        </div>
+      </div>
+    </>
   )
 }
 
@@ -763,57 +1034,3 @@ function AddCategoryForm({ type, onClose, onAdd }) {
   )
 }
 
-function OtherTab({ theme, setTheme }) {
-  function handleExport() {
-    // Placeholder for export functionality
-    alert('Export functionality coming soon')
-  }
-
-  return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <p className="text-sm font-semibold text-stone-700 mb-3">Theme</p>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setTheme('light')}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-              theme === 'light'
-                ? 'bg-stone-800 text-white'
-                : 'bg-stone-100 text-stone-600'
-            }`}
-          >
-            Light
-          </button>
-          <button
-            onClick={() => setTheme('dark')}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-              theme === 'dark'
-                ? 'bg-stone-800 text-white'
-                : 'bg-stone-100 text-stone-600'
-            }`}
-          >
-            Dark
-          </button>
-        </div>
-      </div>
-
-      <div>
-        <p className="text-sm font-semibold text-stone-700 mb-3">Export Data</p>
-        <button
-          onClick={handleExport}
-          className="w-full py-3 rounded-2xl bg-stone-100 text-stone-600 text-sm font-semibold active:scale-95 transition-transform"
-        >
-          Export as JSON
-        </button>
-        <button
-          onClick={handleExport}
-          className="w-full py-3 rounded-2xl bg-stone-100 text-stone-600 text-sm font-semibold active:scale-95 transition-transform mt-2"
-        >
-          Export as CSV
-        </button>
-      </div>
-
-      <p className="text-xs text-stone-400 text-center">More settings coming soon</p>
-    </div>
-  )
-}
