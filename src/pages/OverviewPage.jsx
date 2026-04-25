@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ChevronRight, TrendingDown, Settings } from 'lucide-react'
+import { ChevronRight, TrendingDown, Settings, Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCollection, addDocument, updateDocument, deleteDocument } from '../hooks/useFirestore'
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../constants/categories'
@@ -74,6 +74,9 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
           <div className="flex items-center gap-2">
             <button onClick={() => setShowSettings(true)} className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm">
               <Settings size={20} className="text-stone-600" />
+            </button>
+            <button onClick={() => onNavigate('add')} className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm">
+              <Plus size={20} className="text-stone-600" />
             </button>
             <p className="text-stone-500 text-sm">{dateLabel}</p>
           </div>
