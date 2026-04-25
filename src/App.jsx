@@ -15,7 +15,7 @@ import BottomNav from './components/BottomNav'
 function AppShell() {
   const { user } = useAuth()
   useProcessRecurring()
-  const [tab, setTab] = useState('overview')
+  const [tab, setTab] = useState('activity')
   const [selectedDebt, setSelectedDebt] = useState(null)
   const [editTransaction, setEditTransaction] = useState(null)
 

@@ -3,7 +3,6 @@ import { TrendingDown, ArrowLeftRight, PlusCircle, BarChart2, Wallet, Repeat } f
 const tabs = [
   { id: 'overview', label: 'Debts', Icon: TrendingDown },
   { id: 'activity', label: 'Activity', Icon: ArrowLeftRight },
-  { id: 'add', label: 'Add', Icon: PlusCircle },
   { id: 'wealth', label: 'Wealth', Icon: Wallet },
   { id: 'stats', label: 'Stats', Icon: BarChart2 },
 ]
