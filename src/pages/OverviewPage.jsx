@@ -528,34 +528,235 @@ function RecurringFormModal({ item, payFromOptions, userId, onClose }) {
 }
 
 function CategoriesTab() {
+  const [customExpense, setCustomExpense] = useState([])
+  const [customIncome, setCustomIncome] = useState([])
+  const [editingCat, setEditingCat] = useState(null)
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [addType, setAddType] = useState('expense')
+
+  function handleEditCategory(cat, type) {
+    setEditingCat({ ...cat, type })
+  }
+
+  function handleDeleteCategory(id, type) {
+    if (type === 'expense') {
+      setCustomExpense(prev => prev.filter(c => c.id !== id))
+    } else {
+      setCustomIncome(prev => prev.filter(c => c.id !== id))
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div>
         <p className="text-sm font-semibold text-stone-700 mb-3">Expense Categories</p>
         <div className="grid grid-cols-4 gap-2">
           {EXPENSE_CATEGORIES.map(cat => (
-            <div key={cat.id} className="bg-white rounded-2xl p-3 shadow-sm text-center cursor-pointer active:scale-95 transition-transform">
+            <button
+              key={cat.id}
+              onClick={() => handleEditCategory(cat, 'expense')}
+              className="bg-white rounded-2xl p-3 shadow-sm text-center cursor-pointer active:scale-95 transition-transform hover:bg-stone-50"
+            >
               <p className="text-2xl mb-1">{cat.emoji}</p>
               <p className="text-xs font-medium text-stone-700 leading-tight">{cat.label}</p>
-            </div>
+            </button>
+          ))}
+          {customExpense.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => handleEditCategory(cat, 'expense')}
+              className="bg-emerald-50 rounded-2xl p-3 shadow-sm text-center cursor-pointer active:scale-95 transition-transform border border-emerald-200"
+            >
+              <p className="text-2xl mb-1">{cat.emoji}</p>
+              <p className="text-xs font-medium text-emerald-700 leading-tight">{cat.label}</p>
+            </button>
           ))}
         </div>
+        <button
+          onClick={() => {
+            setAddType('expense')
+            setShowAddForm(true)
+          }}
+          className="mt-2 w-full py-2 rounded-xl text-sm font-semibold text-stone-600 bg-stone-100 active:scale-95 transition-transform"
+        >
+          + Add expense category
+        </button>
       </div>
 
       <div>
         <p className="text-sm font-semibold text-stone-700 mb-3">Income Categories</p>
         <div className="grid grid-cols-4 gap-2">
           {INCOME_CATEGORIES.map(cat => (
-            <div key={cat.id} className="bg-white rounded-2xl p-3 shadow-sm text-center cursor-pointer active:scale-95 transition-transform">
+            <button
+              key={cat.id}
+              onClick={() => handleEditCategory(cat, 'income')}
+              className="bg-white rounded-2xl p-3 shadow-sm text-center cursor-pointer active:scale-95 transition-transform hover:bg-stone-50"
+            >
               <p className="text-2xl mb-1">{cat.emoji}</p>
               <p className="text-xs font-medium text-stone-700 leading-tight">{cat.label}</p>
-            </div>
+            </button>
+          ))}
+          {customIncome.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => handleEditCategory(cat, 'income')}
+              className="bg-emerald-50 rounded-2xl p-3 shadow-sm text-center cursor-pointer active:scale-95 transition-transform border border-emerald-200"
+            >
+              <p className="text-2xl mb-1">{cat.emoji}</p>
+              <p className="text-xs font-medium text-emerald-700 leading-tight">{cat.label}</p>
+            </button>
           ))}
         </div>
+        <button
+          onClick={() => {
+            setAddType('income')
+            setShowAddForm(true)
+          }}
+          className="mt-2 w-full py-2 rounded-xl text-sm font-semibold text-stone-600 bg-stone-100 active:scale-95 transition-transform"
+        >
+          + Add income category
+        </button>
       </div>
 
-      <p className="text-xs text-stone-400 text-center mt-2">Category customization coming soon</p>
+      {editingCat && (
+        <CategoryEditor
+          category={editingCat}
+          onClose={() => setEditingCat(null)}
+          onDelete={(id) => {
+            handleDeleteCategory(id, editingCat.type)
+            setEditingCat(null)
+          }}
+          onSave={(updated) => {
+            if (editingCat.type === 'expense') {
+              setCustomExpense(prev => [...prev.filter(c => c.id !== updated.id), updated])
+            } else {
+              setCustomIncome(prev => [...prev.filter(c => c.id !== updated.id), updated])
+            }
+            setEditingCat(null)
+          }}
+        />
+      )}
+
+      {showAddForm && (
+        <AddCategoryForm
+          type={addType}
+          onClose={() => setShowAddForm(false)}
+          onAdd={(newCat) => {
+            if (addType === 'expense') {
+              setCustomExpense(prev => [...prev, newCat])
+            } else {
+              setCustomIncome(prev => [...prev, newCat])
+            }
+            setShowAddForm(false)
+          }}
+        />
+      )}
     </div>
+  )
+}
+
+function CategoryEditor({ category, onClose, onDelete, onSave }) {
+  const [emoji, setEmoji] = useState(category.emoji)
+  const [label, setLabel] = useState(category.label)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#E8E4DE] rounded-t-3xl max-h-[92vh] overflow-y-auto">
+        <div className="max-w-md mx-auto px-4 pt-4 pb-20">
+          <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-4" />
+
+          <div className="flex items-center justify-between mb-5">
+            <button onClick={onClose} className="text-stone-500 font-medium text-[15px]">Cancel</button>
+            <h2 className="text-[17px] font-bold text-stone-800">Edit category</h2>
+            <button onClick={() => onSave({ ...category, emoji, label })}
+              className="text-stone-800 font-semibold text-[15px]">Save</button>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
+              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">Emoji</p>
+              <input type="text" maxLength="2" placeholder="😀"
+                value={emoji} onChange={e => setEmoji(e.target.value)}
+                className="w-full text-4xl font-semibold text-stone-800 bg-transparent outline-none text-center" />
+            </div>
+
+            <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
+              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">Label</p>
+              <input type="text" placeholder="e.g. Custom Category"
+                value={label} onChange={e => setLabel(e.target.value)}
+                className="w-full text-[15px] font-semibold text-stone-800 bg-transparent outline-none placeholder:text-stone-300" />
+            </div>
+
+            {!confirmDelete ? (
+              <button onClick={() => setConfirmDelete(true)}
+                className="w-full py-3 rounded-2xl border border-red-200 text-red-500 text-sm font-semibold">
+                Delete category
+              </button>
+            ) : (
+              <div className="bg-red-50 rounded-2xl p-4 flex flex-col gap-2">
+                <p className="text-sm font-semibold text-red-600 text-center">Delete "{label}"?</p>
+                <div className="flex gap-2">
+                  <button onClick={() => setConfirmDelete(false)}
+                    className="flex-1 py-2.5 rounded-xl bg-stone-100 text-stone-600 text-sm font-semibold">Cancel</button>
+                  <button onClick={() => onDelete(category.id)}
+                    className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold">Delete</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function AddCategoryForm({ type, onClose, onAdd }) {
+  const [emoji, setEmoji] = useState('📦')
+  const [label, setLabel] = useState('')
+
+  function handleAdd() {
+    if (!label.trim()) return
+    onAdd({
+      id: `custom_${Date.now()}`,
+      emoji,
+      label,
+    })
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#E8E4DE] rounded-t-3xl max-h-[92vh] overflow-y-auto">
+        <div className="max-w-md mx-auto px-4 pt-4 pb-20">
+          <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-4" />
+
+          <div className="flex items-center justify-between mb-5">
+            <button onClick={onClose} className="text-stone-500 font-medium text-[15px]">Cancel</button>
+            <h2 className="text-[17px] font-bold text-stone-800">New {type} category</h2>
+            <button onClick={handleAdd} disabled={!label.trim()}
+              className="text-stone-800 font-semibold text-[15px] disabled:text-stone-300">Add</button>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
+              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">Emoji</p>
+              <input type="text" maxLength="2" placeholder="😀"
+                value={emoji} onChange={e => setEmoji(e.target.value)}
+                className="w-full text-4xl font-semibold text-stone-800 bg-transparent outline-none text-center" />
+            </div>
+
+            <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
+              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">Label</p>
+              <input type="text" placeholder="e.g. Custom Category"
+                value={label} onChange={e => setLabel(e.target.value)}
+                className="w-full text-[15px] font-semibold text-stone-800 bg-transparent outline-none placeholder:text-stone-300" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   )
 }
 

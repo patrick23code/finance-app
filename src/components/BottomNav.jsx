@@ -5,7 +5,6 @@ const tabs = [
   { id: 'activity', label: 'Activity', Icon: ArrowLeftRight },
   { id: 'add', label: 'Add', Icon: PlusCircle },
   { id: 'wealth', label: 'Wealth', Icon: Wallet },
-  { id: 'recurring', label: 'Recurring', Icon: Repeat },
   { id: 'stats', label: 'Stats', Icon: BarChart2 },
 ]
 
