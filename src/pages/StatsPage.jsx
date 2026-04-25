@@ -1,8 +1,9 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { useAuth } from '../context/AuthContext'
 import { useCollection } from '../hooks/useFirestore'
 import { EXPENSE_CATEGORIES } from '../constants/categories'
+import { useCountUp } from '../hooks/useCountUp'
 
 const CAT_COLOR_MAP = Object.fromEntries(EXPENSE_CATEGORIES.map(c => [c.id, c.color]))
 const CAT_EMOJI_MAP = Object.fromEntries(EXPENSE_CATEGORIES.map(c => [c.id, c.emoji]))
@@ -87,6 +88,11 @@ export default function StatsPage() {
     return Object.values(groups).sort((a, b) => b.total - a.total)
   }, [debts])
 
+  const animatedNetWorth = useCountUp(netWorth, 1000)
+  const animatedAssets = useCountUp(totalAssets, 900)
+  const animatedDebt = useCountUp(totalDebt, 900)
+  const animatedMonthly = useCountUp(thisMonthExpenses, 800)
+
   if (dLoading || tLoading || aLoading) return <div className="flex items-center justify-center min-h-svh bg-[#E8E4DE]"><div className="text-stone-400">Loading...</div></div>
 
   return (
@@ -99,16 +105,16 @@ export default function StatsPage() {
         <div className="bg-stone-800 rounded-2xl p-4 mb-4 shadow-sm">
           <p className="text-stone-400 text-xs font-medium uppercase tracking-wide mb-3">Net worth</p>
           <p className={`text-4xl font-bold tracking-tight mb-4 ${netWorth >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-            {netWorth >= 0 ? '+' : ''}{fmtFull(netWorth)}
+            {netWorth >= 0 ? '+' : ''}{fmtFull(animatedNetWorth)}
           </p>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
               <p className="text-stone-400 text-xs mb-1">Assets</p>
-              <p className="font-semibold text-white">{fmtFull(totalAssets)}</p>
+              <p className="font-semibold text-white">{fmtFull(animatedAssets)}</p>
             </div>
             <div>
               <p className="text-stone-400 text-xs mb-1">Debts</p>
-              <p className="font-semibold text-white">-{fmtFull(totalDebt)}</p>
+              <p className="font-semibold text-white">-{fmtFull(animatedDebt)}</p>
             </div>
           </div>
         </div>
@@ -116,7 +122,7 @@ export default function StatsPage() {
         {/* Monthly Spending Trend */}
         <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
           <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Monthly spending</p>
-          <p className="text-2xl font-bold text-stone-800 tracking-tight mb-4">{fmtFull(thisMonthExpenses)}</p>
+          <p className="text-2xl font-bold text-stone-800 tracking-tight mb-4">{fmtFull(animatedMonthly)}</p>
           <ResponsiveContainer width="100%" height={100}>
             <AreaChart data={monthlyTrend} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
               <defs>
@@ -155,18 +161,15 @@ export default function StatsPage() {
                 }
                 const barColor = barColors[bgClass] || '#a8a29e'
                 return (
-                  <div key={item.category}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <span className="text-base">{emoji}</span>
-                        <span className="text-sm font-medium text-stone-700 capitalize">{item.category}</span>
-                      </div>
-                      <span className="text-sm text-stone-500">{fmtFull(item.total)} <span className="text-stone-400">({pct}%)</span></span>
-                    </div>
-                    <div className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: barColor }} />
-                    </div>
-                  </div>
+                  <AnimatedBar
+                    key={item.category}
+                    pct={pct}
+                    barColor={barColor}
+                    emoji={emoji}
+                    label={item.category}
+                    value={fmtFull(item.total)}
+                    delay={idx * 80}
+                  />
                 )
               })}
             </div>
@@ -210,6 +213,36 @@ export default function StatsPage() {
             </div>
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+function AnimatedBar({ pct, barColor, emoji, label, value, delay = 0 }) {
+  const [width, setWidth] = useState(0)
+  useEffect(() => {
+    const t = setTimeout(() => setWidth(pct), 100 + delay)
+    return () => clearTimeout(t)
+  }, [pct, delay])
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1.5">
+        <div className="flex items-center gap-2">
+          <span className="text-base">{emoji}</span>
+          <span className="text-sm font-medium text-stone-700 capitalize">{label}</span>
+        </div>
+        <span className="text-sm text-stone-500">{value} <span className="text-stone-400">({pct}%)</span></span>
+      </div>
+      <div className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden">
+        <div
+          className="h-full rounded-full"
+          style={{
+            width: `${width}%`,
+            backgroundColor: barColor,
+            transition: 'width 0.7s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          }}
+        />
       </div>
     </div>
   )

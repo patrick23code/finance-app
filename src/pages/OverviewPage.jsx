@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ChevronRight, TrendingDown, Settings, Plus, Zap, Grid3X3, Repeat, Download, Moon, DollarSign, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCollection, addDocument, updateDocument, deleteDocument } from '../hooks/useFirestore'
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../constants/categories'
+import { useCountUp } from '../hooks/useCountUp'
 
 const DEBT_COLORS = {
   loan: 'bg-stone-700',
@@ -65,6 +66,8 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
     return groups
   }, [debts])
 
+  const animatedTotal = useCountUp(totals.total)
+
   if (loading) return <div className="flex items-center justify-center min-h-svh bg-[#E8E4DE]"><div className="text-stone-400">Loading...</div></div>
 
   return (
@@ -89,7 +92,7 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
         {/* Total Balance Card */}
         <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm animate-scale-in">
           <p className="text-stone-500 text-xs font-medium tracking-wide uppercase mb-1">Total balance</p>
-          <p className="text-4xl font-bold text-stone-800 tracking-tight mb-3">{fmt(totals.total)}</p>
+          <p className="text-4xl font-bold text-stone-800 tracking-tight mb-3">{fmt(animatedTotal)}</p>
 
           {totals.total > 0 && (
             <div className="w-full h-2 rounded-full overflow-hidden flex mb-2">
@@ -216,6 +219,12 @@ function DebtCard({ debt, color, onClick }) {
   const available = isCC && debt.creditLimit ? debt.creditLimit - debt.remaining : null
   const segments = 20
 
+  const [barPct, setBarPct] = useState(0)
+  useEffect(() => {
+    const t = setTimeout(() => setBarPct(pct), 80)
+    return () => clearTimeout(t)
+  }, [pct])
+
   return (
     <div className="bg-white rounded-2xl p-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer" onClick={onClick}>
       <div className="flex items-start justify-between mb-1">
@@ -239,16 +248,26 @@ function DebtCard({ debt, color, onClick }) {
       {isCC ? (
         <div className="flex gap-0.5 mt-3 mb-2">
           {Array.from({ length: segments }).map((_, i) => {
-            const filled = i < Math.round((pct / 100) * segments)
+            const filled = i < Math.round((barPct / 100) * segments)
             const barColor = pct >= 85 ? '#ef4444' : pct >= 65 ? '#f97316' : pct >= 40 ? '#f59e0b' : '#22c55e'
-            return <div key={i} className="flex-1 h-1.5 rounded-sm" style={{ backgroundColor: filled ? barColor : '#e7e5e4' }} />
+            return (
+              <div
+                key={i}
+                className="flex-1 h-1.5 rounded-sm transition-colors duration-700"
+                style={{ backgroundColor: filled ? barColor : '#e7e5e4', transitionDelay: `${i * 20}ms` }}
+              />
+            )
           })}
         </div>
       ) : (
         <div className="w-full h-1.5 bg-stone-100 rounded-full mt-3 mb-2">
           <div
-            className="h-full rounded-full transition-all"
-            style={{ width: `${pct}%`, backgroundColor: pct >= 80 ? '#ef4444' : pct >= 50 ? '#f59e0b' : '#22c55e' }}
+            className="h-full rounded-full"
+            style={{
+              width: `${barPct}%`,
+              backgroundColor: pct >= 80 ? '#ef4444' : pct >= 50 ? '#f59e0b' : '#22c55e',
+              transition: 'width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            }}
           />
         </div>
       )}

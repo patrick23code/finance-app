@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useCollection, deleteDocument, updateDocument } from '../hooks/useFirestore'
 import { useSwipeDelete } from '../hooks/useSwipeDelete'
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../constants/categories'
+import { useCountUp } from '../hooks/useCountUp'
 
 const ALL_CATEGORIES = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES]
 const CATEGORY_MAP = Object.fromEntries(ALL_CATEGORIES.map(c => [c.id, c]))
@@ -100,6 +101,10 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], [])
   const isCurrentMonth = offset === 0
 
+  const animatedIncome = useCountUp(income, 700)
+  const animatedExpenses = useCountUp(expenses, 700)
+  const animatedBalance = useCountUp(totalBalance, 800)
+
   if (loading) return <div className="flex items-center justify-center min-h-svh bg-[#E8E4DE]"><div className="text-stone-400">Loading...</div></div>
 
   return (
@@ -190,18 +195,18 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1 flex flex-col items-center">
               <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-0.5">Income</p>
-              <p className="text-lg font-bold text-emerald-600">+${income.toLocaleString()}</p>
+              <p className="text-lg font-bold text-emerald-600">+${Math.round(animatedIncome).toLocaleString()}</p>
             </div>
             <div className="w-px bg-stone-100 self-stretch mx-1" />
             <div className="flex-1 flex flex-col items-center">
               <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-0.5">Expenses</p>
-              <p className="text-lg font-bold text-red-500">-${expenses.toLocaleString()}</p>
+              <p className="text-lg font-bold text-red-500">-${Math.round(animatedExpenses).toLocaleString()}</p>
             </div>
             <div className="w-px bg-stone-100 self-stretch mx-1" />
             <div className="flex-1 flex flex-col items-center">
               <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-0.5">Balance</p>
               <p className={`text-lg font-bold ${totalBalance >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                {totalBalance >= 0 ? '+' : ''}{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalBalance)}
+                {totalBalance >= 0 ? '+' : ''}{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(animatedBalance)}
               </p>
             </div>
           </div>
