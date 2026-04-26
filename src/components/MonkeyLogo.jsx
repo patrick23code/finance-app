@@ -8,102 +8,94 @@ export default function MonkeyLogo({ size = 64 }) {
       className="overflow-visible"
     >
       {/* Left Ear */}
-      <circle cx="50" cy="40" r="28" fill="#8B6F47" />
-      <circle cx="50" cy="40" r="20" fill="#A0826D" />
-      <circle cx="50" cy="40" r="12" fill="#C9B9A8" />
+      <circle cx="50" cy="40" r="28" fill="#333333" />
+      <circle cx="50" cy="40" r="20" fill="#555555" />
+      <circle cx="50" cy="40" r="12" fill="#f5f5f5" />
 
       {/* Right Ear */}
-      <circle cx="150" cy="40" r="28" fill="#8B6F47" />
-      <circle cx="150" cy="40" r="20" fill="#A0826D" />
-      <circle cx="150" cy="40" r="12" fill="#C9B9A8" />
+      <circle cx="150" cy="40" r="28" fill="#333333" />
+      <circle cx="150" cy="40" r="20" fill="#555555" />
+      <circle cx="150" cy="40" r="12" fill="#f5f5f5" />
 
       {/* Head */}
-      <circle cx="100" cy="100" r="70" fill="#A0826D" />
-      <circle cx="100" cy="105" r="65" fill="#B8956A" />
+      <circle cx="100" cy="100" r="70" fill="#333333" />
+      <circle cx="100" cy="105" r="65" fill="#444444" />
 
       {/* Face base */}
-      <ellipse cx="100" cy="115" rx="55" ry="60" fill="#D4A574" />
+      <ellipse cx="100" cy="115" rx="55" ry="60" fill="#555555" />
 
       {/* Snout */}
-      <ellipse cx="100" cy="125" rx="42" ry="38" fill="#E8C9A0" />
+      <ellipse cx="100" cy="125" rx="42" ry="38" fill="#f5f5f5" />
 
       {/* Left Eye White */}
-      <circle cx="75" cy="90" r="14" fill="white" />
+      <circle cx="75" cy="85" r="16" fill="white" />
       {/* Right Eye White */}
-      <circle cx="125" cy="90" r="14" fill="white" />
+      <circle cx="125" cy="85" r="16" fill="white" />
 
-      {/* Left Pupil */}
-      <circle cx="78" cy="93" r="8" fill="#1a1a1a" />
-      <circle cx="80" cy="91" r="3" fill="white" />
-      {/* Right Pupil */}
-      <circle cx="128" cy="93" r="8" fill="#1a1a1a" />
-      <circle cx="130" cy="91" r="3" fill="white" />
+      {/* Left Eye Dollar Sign */}
+      <text x="75" y="95" fontSize="20" fontWeight="bold" fill="#000000" textAnchor="middle" dominantBaseline="middle">
+        $
+      </text>
+      {/* Right Eye Dollar Sign */}
+      <text x="125" y="95" fontSize="20" fontWeight="bold" fill="#000000" textAnchor="middle" dominantBaseline="middle">
+        $
+      </text>
 
-      {/* Left Eyebrow - angry/confident */}
+      {/* Left Eyebrow - angry/boss */}
       <path
-        d="M 65 75 Q 75 70 85 72"
-        stroke="#8B6F47"
-        strokeWidth="4"
+        d="M 60 70 Q 75 65 90 68"
+        stroke="#f5f5f5"
+        strokeWidth="5"
         fill="none"
         strokeLinecap="round"
       />
-      {/* Right Eyebrow - angry/confident */}
+      {/* Right Eyebrow - angry/boss */}
       <path
-        d="M 115 72 Q 125 70 135 75"
-        stroke="#8B6F47"
-        strokeWidth="4"
+        d="M 110 68 Q 125 65 140 70"
+        stroke="#f5f5f5"
+        strokeWidth="5"
         fill="none"
         strokeLinecap="round"
       />
 
       {/* Nose */}
-      <ellipse cx="100" cy="115" rx="8" ry="10" fill="#8B6F47" />
-      <path d="M 100 115 L 98 122 M 100 115 L 102 122" stroke="#8B6F47" strokeWidth="2" fill="none" strokeLinecap="round" />
+      <ellipse cx="100" cy="120" rx="10" ry="12" fill="#333333" />
+      <path d="M 100 120 L 97 130 M 100 120 L 103 130" stroke="#333333" strokeWidth="2.5" fill="none" strokeLinecap="round" />
 
-      {/* Mouth - confident smile */}
+      {/* Mouth - evil grin */}
       <path
-        d="M 100 125 Q 90 135 75 130"
-        stroke="#8B6F47"
-        strokeWidth="3"
+        d="M 100 130 Q 85 142 70 135"
+        stroke="#333333"
+        strokeWidth="3.5"
         fill="none"
         strokeLinecap="round"
       />
       <path
-        d="M 100 125 Q 110 135 125 130"
-        stroke="#8B6F47"
-        strokeWidth="3"
+        d="M 100 130 Q 115 142 130 135"
+        stroke="#333333"
+        strokeWidth="3.5"
         fill="none"
         strokeLinecap="round"
       />
 
-      {/* Mouth inner color */}
+      {/* Mouth inner */}
       <path
-        d="M 75 130 Q 85 138 100 140 Q 115 138 125 130"
-        fill="#D4997D"
-        opacity="0.6"
+        d="M 70 135 Q 85 145 100 147 Q 115 145 130 135"
+        fill="#333333"
+        opacity="0.3"
       />
 
-      {/* Cheeks */}
-      <circle cx="55" cy="110" r="12" fill="#C9B9A8" opacity="0.4" />
-      <circle cx="145" cy="110" r="12" fill="#C9B9A8" opacity="0.4" />
+      {/* Cheeks - darker */}
+      <circle cx="55" cy="110" r="13" fill="#333333" opacity="0.5" />
+      <circle cx="145" cy="110" r="13" fill="#333333" opacity="0.5" />
 
-      {/* Crown/Boss accessory */}
-      <g>
-        {/* Crown base */}
-        <path
-          d="M 70 50 L 85 25 L 100 15 L 115 25 L 130 50 Z"
-          fill="#FFD700"
-          stroke="#DAA520"
-          strokeWidth="2"
-        />
-        {/* Crown shine */}
-        <circle cx="85" cy="30" r="4" fill="#FFED4E" />
-        <circle cx="100" cy="18" r="5" fill="#FFED4E" />
-        <circle cx="115" cy="30" r="4" fill="#FFED4E" />
-      </g>
+      {/* Top knot / Boss tuft */}
+      <circle cx="100" cy="30" r="18" fill="#333333" />
+      <circle cx="95" cy="20" r="12" fill="#555555" />
+      <circle cx="105" cy="20" r="12" fill="#555555" />
 
-      {/* Chin definition */}
-      <ellipse cx="100" cy="165" rx="35" ry="12" fill="#A0826D" opacity="0.3" />
+      {/* Shine on snout */}
+      <ellipse cx="100" cy="105" rx="15" ry="12" fill="white" opacity="0.2" />
     </svg>
   )
 }
