@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Trash2, Repeat } from 'lucide-react'
+import { Plus, Trash2, Repeat, Calendar } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCollection, addDocument, updateDocument, deleteDocument } from '../hooks/useFirestore'
 import { EXPENSE_CATEGORIES } from '../constants/categories'
@@ -7,6 +7,9 @@ import { EXPENSE_CATEGORIES } from '../constants/categories'
 const ACCOUNT_ICONS = { checking: '🏦', savings: '💰', cash: '💵' }
 
 const CATEGORIES = EXPENSE_CATEGORIES
+
+const CAT_COLOR_MAP = Object.fromEntries(EXPENSE_CATEGORIES.map(c => [c.id, c.color]))
+const CAT_EMOJI_MAP = Object.fromEntries(EXPENSE_CATEGORIES.map(c => [c.id, c.emoji]))
 
 function fmt(n) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
@@ -58,27 +61,37 @@ export default function RecurringPage() {
 
         {/* Summary */}
         {recurring.length > 0 && (
-          <div className="bg-stone-800 rounded-2xl p-4 mb-4 shadow-sm">
-            <p className="text-stone-400 text-xs font-medium uppercase tracking-wide mb-1">Total monthly</p>
-            <p className="text-4xl font-bold text-white tracking-tight">{fmt(totalMonthly)}</p>
-            <p className="text-stone-500 text-xs mt-1">{recurring.length} recurring expense{recurring.length !== 1 ? 's' : ''}</p>
+          <div className="bg-stone-800 rounded-2xl p-4 mb-4 shadow-sm animate-scale-in">
+            <p className="text-stone-400 text-xs font-medium uppercase tracking-wide mb-1">Total monthly commitment</p>
+            <p className="text-4xl font-bold text-white tracking-tight mb-3">{fmt(totalMonthly)}</p>
+            <div className="w-full h-2 bg-stone-700 rounded-full overflow-hidden">
+              <div className="h-full bg-emerald-500 w-full" />
+            </div>
+            <p className="text-stone-500 text-xs mt-2">{recurring.length} recurring expense{recurring.length !== 1 ? 's' : ''}</p>
           </div>
         )}
 
         {/* Upcoming Debt Payments */}
         {upcomingDebts.length > 0 && (
           <div className="mb-6">
-            <p className="text-xs font-semibold text-stone-500 tracking-wide uppercase mb-3">Upcoming debt payments</p>
-            <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none">
-              {upcomingDebts.map(d => {
+            <div className="flex items-center gap-2 mb-3">
+              <Calendar size={16} className="text-stone-500" />
+              <p className="text-xs font-semibold text-stone-500 tracking-wide uppercase">Upcoming payments</p>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+              {upcomingDebts.map((d, idx) => {
                 const dueDate = new Date(today.getFullYear(), today.getMonth(), d.dueDay)
                 if (dueDate < today) dueDate.setMonth(dueDate.getMonth() + 1)
                 const monthLabel = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()
+                const daysUntil = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24))
                 return (
-                  <div key={d.id} className="bg-white rounded-2xl p-3 min-w-[130px] shadow-sm flex-shrink-0">
+                  <div key={d.id} className="bg-white rounded-2xl p-4 min-w-[140px] shadow-sm flex-shrink-0 animate-scale-in" style={{ animationDelay: `${idx * 50}ms` }}>
                     <p className="text-[10px] font-semibold text-stone-400 mb-1">{monthLabel}</p>
-                    <p className="font-semibold text-stone-800 text-sm leading-tight">{d.name}</p>
-                    <p className="text-stone-600 text-sm font-medium mt-1">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(d.monthly)}</p>
+                    <p className="font-semibold text-stone-800 text-sm leading-tight mb-2">{d.name}</p>
+                    <p className="font-bold text-stone-800 mb-2">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(d.monthly)}</p>
+                    <p className={`text-xs font-semibold ${daysUntil <= 3 ? 'text-red-500' : 'text-emerald-500'}`}>
+                      {daysUntil === 0 ? 'TODAY' : `${daysUntil}d left`}
+                    </p>
                   </div>
                 )
               })}
@@ -87,39 +100,51 @@ export default function RecurringPage() {
         )}
 
         {recurring.length === 0 ? (
-          <div className="text-center py-16">
-            <Repeat size={40} className="text-stone-300 mx-auto mb-3" />
-            <p className="text-stone-400 font-medium">No recurring expenses</p>
-            <p className="text-stone-400 text-sm mt-1">Add your fixed monthly bills</p>
+          <div className="text-center py-20 animate-scale-in">
+            <div className="w-20 h-20 rounded-full bg-stone-100 flex items-center justify-center mx-auto mb-4">
+              <Repeat size={40} className="text-stone-400" />
+            </div>
+            <p className="text-stone-600 font-semibold text-lg">No recurring expenses</p>
+            <p className="text-stone-400 text-sm mt-2">Add your fixed monthly bills to track them here</p>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
-            {recurring.map(item => {
+          <div className="flex flex-col gap-2">
+            {recurring.map((item, idx) => {
               const source = payFromOptions.find(o => o.id === item.sourceId)
               const isPaid = item.lastProcessedMonth === currentMonth
-              const cat = CATEGORIES.find(c => c.id === item.category)
+              const catId = item.category || 'other'
+              const bgClass = CAT_COLOR_MAP[catId] || 'bg-stone-400'
+              const emoji = CAT_EMOJI_MAP[catId] || '📦'
+              const daysUntilDue = item.dueDay > new Date().getDate()
+                ? item.dueDay - new Date().getDate()
+                : (new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate() - new Date().getDate()) + item.dueDay
 
               return (
                 <div
                   key={item.id}
                   onClick={() => { setEditItem(item); setShowForm(true) }}
-                  className="bg-white rounded-2xl p-4 shadow-sm cursor-pointer active:scale-[0.98] transition-transform"
+                  className="bg-white rounded-2xl p-4 shadow-sm cursor-pointer active:scale-[0.98] transition-all animate-scale-in"
+                  style={{ animationDelay: `${idx * 40}ms` }}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-full bg-stone-100 flex items-center justify-center text-xl flex-shrink-0">
-                      {cat?.emoji || '📦'}
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className={`w-12 h-12 rounded-full ${bgClass} flex items-center justify-center text-xl flex-shrink-0`}>
+                      {emoji}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-stone-800">{item.name}</p>
-                      <p className="text-xs text-stone-400 truncate">
-                        {ordinal(item.dueDay)} of every month{source ? ` · ${source.label}` : ''}
+                      <p className="font-semibold text-stone-800 text-sm">{item.name}</p>
+                      <p className="text-xs text-stone-400 mt-0.5">
+                        {ordinal(item.dueDay)} · {source?.label || 'Other'}
                       </p>
                     </div>
                     <div className="text-right flex-shrink-0">
                       <p className="font-bold text-stone-800">{fmt(item.amount)}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
                       {isPaid
-                        ? <p className="text-[10px] font-semibold text-emerald-500 mt-0.5">PAID</p>
-                        : <p className="text-[10px] font-semibold text-orange-400 mt-0.5">DUE {ordinal(item.dueDay).toUpperCase()}</p>
+                        ? <span className="inline-block px-2 py-1 bg-emerald-100 text-emerald-700 text-[9px] font-bold rounded-lg">✓ PAID THIS MONTH</span>
+                        : <span className="inline-block px-2 py-1 bg-orange-100 text-orange-700 text-[9px] font-bold rounded-lg">DUE IN {daysUntilDue} DAYS</span>
                       }
                     </div>
                   </div>
