@@ -98,7 +98,7 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
         </div>
 
         {/* Total Debts Card */}
-        <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm animate-scale-in">
+        <div className="bg-gradient-to-br from-stone-50 to-orange-50 rounded-2xl p-4 mb-4 shadow-sm animate-scale-in border border-stone-100/50">
           <p className="text-stone-500 text-xs font-medium tracking-wide uppercase mb-1">Total debts</p>
           <p className="text-4xl font-bold text-stone-800 tracking-tight mb-3">{fmt(animatedTotal)}</p>
 
@@ -132,7 +132,7 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
               <span className="text-xs text-stone-500">{fmt(items.reduce((s, d) => s + (d.remaining || 0), 0))}</span>
             </div>
             {type === 'personal' ? (
-              <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+              <div className="bg-gradient-to-br from-white to-rose-50 rounded-2xl overflow-hidden shadow-sm border border-stone-100/50">
                 {items.map((d, i) => (
                   <PersonalDebtRow key={d.id} debt={d} last={i === items.length - 1} onClick={() => onDebtClick(d)} />
                 ))}
@@ -233,8 +233,15 @@ function DebtCard({ debt, color, onClick }) {
     return () => clearTimeout(t)
   }, [pct])
 
+  const gradients = {
+    'credit_card': 'from-white to-orange-50',
+    'loan': 'from-white to-stone-100',
+    'personal': 'from-white to-rose-50',
+  }
+  const gradientClass = gradients[debt.type] || 'from-white to-stone-50'
+
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer" onClick={onClick}>
+    <div className={`bg-gradient-to-br ${gradientClass} rounded-2xl p-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer border border-stone-100/50`} onClick={onClick}>
       <div className="flex items-start justify-between mb-1">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">

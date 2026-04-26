@@ -85,7 +85,7 @@ export default function RecurringPage() {
                 const monthLabel = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()
                 const daysUntil = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24))
                 return (
-                  <div key={d.id} className="bg-white rounded-2xl p-4 min-w-[140px] shadow-sm flex-shrink-0 animate-scale-in" style={{ animationDelay: `${idx * 50}ms` }}>
+                  <div key={d.id} className="bg-gradient-to-br from-white to-blue-50 rounded-2xl p-4 min-w-[140px] shadow-sm flex-shrink-0 animate-scale-in border border-stone-100/50" style={{ animationDelay: `${idx * 50}ms` }}>
                     <p className="text-[10px] font-semibold text-stone-400 mb-1">{monthLabel}</p>
                     <p className="font-semibold text-stone-800 text-sm leading-tight mb-2">{d.name}</p>
                     <p className="font-bold text-stone-800 mb-2">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(d.monthly)}</p>
@@ -123,7 +123,7 @@ export default function RecurringPage() {
                 <div
                   key={item.id}
                   onClick={() => { setEditItem(item); setShowForm(true) }}
-                  className="bg-white rounded-2xl p-4 shadow-sm cursor-pointer active:scale-[0.98] transition-all animate-scale-in"
+                  className="bg-gradient-to-br from-white to-emerald-50 rounded-2xl p-4 shadow-sm cursor-pointer active:scale-[0.98] transition-all animate-scale-in border border-stone-100/50"
                   style={{ animationDelay: `${idx * 40}ms` }}
                 >
                   <div className="flex items-center gap-3 mb-2">
@@ -240,14 +240,14 @@ function RecurringForm({ item, payFromOptions, onClose, userId }) {
           </div>
 
           <div className="flex flex-col gap-3">
-            <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
+            <div className="bg-gradient-to-br from-white to-stone-50 rounded-2xl px-4 py-4 shadow-sm border border-stone-100/50">
               <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">Name</p>
               <input type="text" placeholder="e.g. Netflix"
                 value={name} onChange={e => setName(e.target.value)}
                 className="w-full text-[15px] font-semibold text-stone-800 bg-transparent outline-none placeholder:text-stone-300" />
             </div>
 
-            <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
+            <div className="bg-gradient-to-br from-white to-stone-50 rounded-2xl px-4 py-4 shadow-sm border border-stone-100/50">
               <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">Amount</p>
               <div className="flex items-center gap-1">
                 <span className="text-2xl font-bold text-stone-300">$</span>
@@ -257,7 +257,7 @@ function RecurringForm({ item, payFromOptions, onClose, userId }) {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
+            <div className="bg-gradient-to-br from-white to-stone-50 rounded-2xl px-4 py-4 shadow-sm border border-stone-100/50">
               <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">Due day of month</p>
               <input type="number" inputMode="numeric" placeholder="e.g. 15" min="1" max="31"
                 value={dueDay} onChange={e => setDueDay(e.target.value)}
@@ -280,7 +280,7 @@ function RecurringForm({ item, payFromOptions, onClose, userId }) {
             </div>
 
             {payFromOptions.length > 0 && (
-              <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
+              <div className="bg-gradient-to-br from-white to-stone-50 rounded-2xl px-4 py-4 shadow-sm border border-stone-100/50">
                 <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Paid from</p>
                 <div className="flex gap-2 flex-wrap">
                   <button onClick={() => setSource('')}

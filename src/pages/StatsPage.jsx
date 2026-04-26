@@ -115,7 +115,7 @@ export default function StatsPage() {
         <h1 className="text-3xl font-bold text-stone-800 tracking-tight mb-6">Stats</h1>
 
         {/* Net Worth Card */}
-        <div className="bg-stone-800 rounded-2xl p-4 mb-4 shadow-sm animate-scale-in">
+        <div className="bg-gradient-to-br from-stone-800 to-stone-900 rounded-2xl p-4 mb-4 shadow-sm animate-scale-in border border-stone-700/50">
           <p className="text-stone-400 text-xs font-medium uppercase tracking-wide mb-3">Net worth</p>
           <p className={`text-4xl font-bold tracking-tight mb-4 ${netWorth >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
             {netWorth >= 0 ? '+' : ''}{fmtFull(animatedNetWorth)}
@@ -134,14 +134,14 @@ export default function StatsPage() {
 
         {/* Income vs Expense */}
         <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="bg-white rounded-2xl p-4 shadow-sm animate-scale-in" style={{ animationDelay: '40ms' }}>
+          <div className="bg-gradient-to-br from-white to-emerald-50 rounded-2xl p-4 shadow-sm animate-scale-in border border-stone-100/50" style={{ animationDelay: '40ms' }}>
             <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-2">Income</p>
             <p className="text-2xl font-bold text-emerald-600 mb-2">{fmtFull(animatedIncome)}</p>
             <div className="w-full h-1 bg-stone-100 rounded-full overflow-hidden">
               <div className="h-full bg-emerald-500" style={{ width: '100%' }} />
             </div>
           </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm animate-scale-in" style={{ animationDelay: '80ms' }}>
+          <div className="bg-gradient-to-br from-white to-red-50 rounded-2xl p-4 shadow-sm animate-scale-in border border-stone-100/50" style={{ animationDelay: '80ms' }}>
             <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-2">Expense</p>
             <p className="text-2xl font-bold text-red-500 mb-2">{fmtFull(animatedMonthly)}</p>
             <div className="w-full h-1 bg-stone-100 rounded-full overflow-hidden">
@@ -152,14 +152,14 @@ export default function StatsPage() {
 
         {/* Savings & Velocity */}
         <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="bg-white rounded-2xl p-4 shadow-sm animate-scale-in" style={{ animationDelay: '120ms' }}>
+          <div className="bg-gradient-to-br from-white to-blue-50 rounded-2xl p-4 shadow-sm animate-scale-in border border-stone-100/50" style={{ animationDelay: '120ms' }}>
             <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-2">Savings Rate</p>
             <p className={`text-2xl font-bold mb-2 ${savingsRate >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
               {savingsRate >= 0 ? '+' : ''}{savingsRate}%
             </p>
             <p className="text-xs text-stone-500">{fmtFull(thisMonthIncome - thisMonthExpenses)}</p>
           </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm animate-scale-in" style={{ animationDelay: '160ms' }}>
+          <div className="bg-gradient-to-br from-white to-amber-50 rounded-2xl p-4 shadow-sm animate-scale-in border border-stone-100/50" style={{ animationDelay: '160ms' }}>
             <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-2">Daily Average</p>
             <p className="text-2xl font-bold text-stone-800 mb-2">{fmtFull(animatedDaily)}</p>
             <p className="text-xs text-stone-500">{daysLeftInMonth} days left</p>
@@ -167,7 +167,7 @@ export default function StatsPage() {
         </div>
 
         {/* Monthly Spending Trend */}
-        <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm animate-scale-in" style={{ animationDelay: '200ms' }}>
+        <div className="bg-gradient-to-br from-white to-pink-50 rounded-2xl p-4 mb-4 shadow-sm animate-scale-in border border-stone-100/50" style={{ animationDelay: '200ms' }}>
           <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Monthly spending trend</p>
           <p className="text-2xl font-bold text-stone-800 tracking-tight mb-4">{fmtFull(animatedMonthly)}</p>
           <ResponsiveContainer width="100%" height={100}>
@@ -191,7 +191,7 @@ export default function StatsPage() {
 
         {/* Category Breakdown */}
         {categoryBreakdown.length > 0 && (
-          <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm animate-scale-in" style={{ animationDelay: '240ms' }}>
+          <div className="bg-gradient-to-br from-white to-purple-50 rounded-2xl p-4 mb-4 shadow-sm animate-scale-in border border-stone-100/50" style={{ animationDelay: '240ms' }}>
             <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Spending by category</p>
             <div className="flex flex-col gap-2">
               {categoryBreakdown.map((item, idx) => {
@@ -225,7 +225,7 @@ export default function StatsPage() {
 
         {/* Top Transactions */}
         {topTransactions.length > 0 && (
-          <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm animate-scale-in" style={{ animationDelay: '280ms' }}>
+          <div className="bg-gradient-to-br from-white to-cyan-50 rounded-2xl p-4 mb-4 shadow-sm animate-scale-in border border-stone-100/50" style={{ animationDelay: '280ms' }}>
             <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Top transactions this month</p>
             <div className="flex flex-col gap-2">
               {topTransactions.map((t, i) => (
@@ -240,7 +240,7 @@ export default function StatsPage() {
 
         {/* Debt Breakdown */}
         {debtBreakdown.length > 0 && (
-          <div className="bg-white rounded-2xl p-4 shadow-sm animate-scale-in" style={{ animationDelay: '320ms' }}>
+          <div className="bg-gradient-to-br from-white to-orange-50 rounded-2xl p-4 shadow-sm animate-scale-in border border-stone-100/50" style={{ animationDelay: '320ms' }}>
             <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-4">Debt breakdown</p>
             <div className="flex flex-col gap-4">
               {debtBreakdown.map(b => {
