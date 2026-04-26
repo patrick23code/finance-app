@@ -97,9 +97,9 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
           </div>
         </div>
 
-        {/* Total Balance Card */}
+        {/* Total Debts Card */}
         <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm animate-scale-in">
-          <p className="text-stone-500 text-xs font-medium tracking-wide uppercase mb-1">Total balance</p>
+          <p className="text-stone-500 text-xs font-medium tracking-wide uppercase mb-1">Total debts</p>
           <p className="text-4xl font-bold text-stone-800 tracking-tight mb-3">{fmt(animatedTotal)}</p>
 
           {totals.total > 0 && (
