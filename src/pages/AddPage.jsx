@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { Bell, Building2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { addDocument } from '../hooks/useFirestore'
+import IssuerCombobox from '../components/IssuerCombobox'
 
 const DEBT_TYPES = [
   { id: 'loan', label: 'Loan' },
@@ -22,6 +23,7 @@ export default function AddPage({ onNavigate }) {
   const [debtType, setDebtType] = useState('loan')
   const [debtName, setDebtName] = useState('')
   const [debtBank, setDebtBank] = useState('')
+  const [selectedIssuer, setSelectedIssuer] = useState(null)
   const [debtRemaining, setDebtRemaining] = useState('')
   const [debtOriginal, setDebtOriginal] = useState('')
   const [debtMonthly, setDebtMonthly] = useState('')
@@ -91,7 +93,8 @@ export default function AddPage({ onNavigate }) {
       await addDocument('debts', user.uid, {
         type: debtType,
         name: nameVal,
-        bank: debtBank || null,
+        bank: selectedIssuer?.name || debtBank || null,
+        issuerId: selectedIssuer?.id || null,
         remaining: parseFloat(debtRemaining),
         originalAmount: debtOriginal ? parseFloat(debtOriginal) : parseFloat(debtRemaining),
         monthly: debtType === 'credit_card'
@@ -177,7 +180,15 @@ export default function AddPage({ onNavigate }) {
             {debtType === 'credit_card' ? (
               <>
                 <DebtField label="Card name" value={debtName} onChange={setDebtName} placeholder="e.g. Sapphire Reserve" />
-                <DebtField label="Issuer" value={debtBank} onChange={setDebtBank} placeholder="e.g. Chase" />
+                <div className="flex items-center px-4 py-3.5 gap-3 border-b border-stone-100">
+                  <p className="text-stone-400 text-[15px] w-32 flex-shrink-0">Issuer</p>
+                  <div className="flex-1">
+                    <IssuerCombobox
+                      value={selectedIssuer}
+                      onChange={b => { setSelectedIssuer(b); setDebtBank(b.name) }}
+                    />
+                  </div>
+                </div>
                 <DebtField label="Last 4" value={debtLast4} onChange={setDebtLast4} placeholder="4821" type="number" />
                 <DebtField label="Credit limit" value={debtCreditLimit} onChange={setDebtCreditLimit} placeholder="12,000" type="number" prefix="$" />
                 <DebtField label="Current balance" value={debtRemaining} onChange={setDebtRemaining} placeholder="2,840" type="number" prefix="$" />

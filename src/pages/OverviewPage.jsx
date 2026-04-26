@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useCollection, addDocument, updateDocument, deleteDocument } from '../hooks/useFirestore'
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../constants/categories'
 import { useCountUp } from '../hooks/useCountUp'
+import BankLogo from '../components/BankLogo'
 
 const DEBT_COLORS = {
   loan: 'bg-stone-700',
@@ -228,8 +229,11 @@ function DebtCard({ debt, color, onClick }) {
   return (
     <div className="bg-white rounded-2xl p-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer" onClick={onClick}>
       <div className="flex items-start justify-between mb-1">
-        <div>
-          {debt.bank && <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide">{debt.bank}</p>}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <BankLogo bankId={debt.issuerId} bankName={debt.bank} size={20} />
+            {debt.bank && <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide">{debt.bank}</p>}
+          </div>
           <p className="font-semibold text-stone-800">
             {debt.name}
             {debt.last4 && <span className="text-stone-400 font-normal"> ·{debt.last4}</span>}

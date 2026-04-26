@@ -3,6 +3,7 @@ import { ChevronLeft, Trash2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCollection, deleteDocument, updateDocument } from '../hooks/useFirestore'
 import { useSwipeDelete } from '../hooks/useSwipeDelete'
+import BankLogo from '../components/BankLogo'
 
 const CATEGORY_ICONS = {
   cigarettes: { emoji: '🚬', color: 'bg-stone-600' },
@@ -84,9 +85,12 @@ export default function DebtDetailPage({ debt, onBack, onEditTransaction }) {
             <button onClick={onBack} className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-sm">
               <ChevronLeft size={20} className="text-stone-600" />
             </button>
-            <div>
-              {debt.bank && <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide">{debt.bank}</p>}
-              <h1 className="text-xl font-bold text-stone-800 tracking-tight">{debt.name}</h1>
+            <div className="flex items-center gap-2">
+              <BankLogo bankId={debt.issuerId} bankName={debt.bank} size={36} />
+              <div>
+                {debt.bank && <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide">{debt.bank}</p>}
+                <h1 className="text-xl font-bold text-stone-800 tracking-tight">{debt.name}</h1>
+              </div>
             </div>
           </div>
           <button onClick={() => setConfirmDelete(true)} className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-sm">
