@@ -88,10 +88,23 @@ export default function StatsPage() {
     return Object.values(groups).sort((a, b) => b.total - a.total)
   }, [debts])
 
+  const thisMonthIncome = useMemo(() => thisMonth.filter(t => t.type === 'income').reduce((s, t) => s + (t.amount || 0), 0), [thisMonth])
+
+  const savingsRate = thisMonthIncome > 0 ? Math.round(((thisMonthIncome - thisMonthExpenses) / thisMonthIncome) * 100) : 0
+
+  const daysInMonth = () => {
+    const now = new Date()
+    return new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+  }
+  const daysLeftInMonth = daysInMonth() - new Date().getDate()
+  const dailyAverage = thisMonthExpenses > 0 ? thisMonthExpenses / new Date().getDate() : 0
+
   const animatedNetWorth = useCountUp(netWorth, 1000)
   const animatedAssets = useCountUp(totalAssets, 900)
   const animatedDebt = useCountUp(totalDebt, 900)
   const animatedMonthly = useCountUp(thisMonthExpenses, 800)
+  const animatedIncome = useCountUp(thisMonthIncome, 800)
+  const animatedDaily = useCountUp(dailyAverage, 800)
 
   if (dLoading || tLoading || aLoading) return <div className="flex items-center justify-center min-h-svh bg-[#E8E4DE]"><div className="text-stone-400">Loading...</div></div>
 
@@ -102,7 +115,7 @@ export default function StatsPage() {
         <h1 className="text-3xl font-bold text-stone-800 tracking-tight mb-6">Stats</h1>
 
         {/* Net Worth Card */}
-        <div className="bg-stone-800 rounded-2xl p-4 mb-4 shadow-sm">
+        <div className="bg-stone-800 rounded-2xl p-4 mb-4 shadow-sm animate-scale-in">
           <p className="text-stone-400 text-xs font-medium uppercase tracking-wide mb-3">Net worth</p>
           <p className={`text-4xl font-bold tracking-tight mb-4 ${netWorth >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
             {netWorth >= 0 ? '+' : ''}{fmtFull(animatedNetWorth)}
@@ -119,9 +132,43 @@ export default function StatsPage() {
           </div>
         </div>
 
+        {/* Income vs Expense */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="bg-white rounded-2xl p-4 shadow-sm animate-scale-in" style={{ animationDelay: '40ms' }}>
+            <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-2">Income</p>
+            <p className="text-2xl font-bold text-emerald-600 mb-2">{fmtFull(animatedIncome)}</p>
+            <div className="w-full h-1 bg-stone-100 rounded-full overflow-hidden">
+              <div className="h-full bg-emerald-500" style={{ width: '100%' }} />
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl p-4 shadow-sm animate-scale-in" style={{ animationDelay: '80ms' }}>
+            <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-2">Expense</p>
+            <p className="text-2xl font-bold text-red-500 mb-2">{fmtFull(animatedMonthly)}</p>
+            <div className="w-full h-1 bg-stone-100 rounded-full overflow-hidden">
+              <div className="h-full bg-red-400" style={{ width: thisMonthIncome > 0 ? `${Math.min(100, (thisMonthExpenses / thisMonthIncome) * 100)}%` : '0%' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Savings & Velocity */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="bg-white rounded-2xl p-4 shadow-sm animate-scale-in" style={{ animationDelay: '120ms' }}>
+            <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-2">Savings Rate</p>
+            <p className={`text-2xl font-bold mb-2 ${savingsRate >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+              {savingsRate >= 0 ? '+' : ''}{savingsRate}%
+            </p>
+            <p className="text-xs text-stone-500">{fmtFull(thisMonthIncome - thisMonthExpenses)}</p>
+          </div>
+          <div className="bg-white rounded-2xl p-4 shadow-sm animate-scale-in" style={{ animationDelay: '160ms' }}>
+            <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-2">Daily Average</p>
+            <p className="text-2xl font-bold text-stone-800 mb-2">{fmtFull(animatedDaily)}</p>
+            <p className="text-xs text-stone-500">{daysLeftInMonth} days left</p>
+          </div>
+        </div>
+
         {/* Monthly Spending Trend */}
-        <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
-          <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Monthly spending</p>
+        <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm animate-scale-in" style={{ animationDelay: '200ms' }}>
+          <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Monthly spending trend</p>
           <p className="text-2xl font-bold text-stone-800 tracking-tight mb-4">{fmtFull(animatedMonthly)}</p>
           <ResponsiveContainer width="100%" height={100}>
             <AreaChart data={monthlyTrend} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
@@ -144,7 +191,7 @@ export default function StatsPage() {
 
         {/* Category Breakdown */}
         {categoryBreakdown.length > 0 && (
-          <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
+          <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm animate-scale-in" style={{ animationDelay: '240ms' }}>
             <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Spending by category</p>
             <div className="flex flex-col gap-2">
               {categoryBreakdown.map((item, idx) => {
@@ -178,7 +225,7 @@ export default function StatsPage() {
 
         {/* Top Transactions */}
         {topTransactions.length > 0 && (
-          <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
+          <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm animate-scale-in" style={{ animationDelay: '280ms' }}>
             <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Top transactions this month</p>
             <div className="flex flex-col gap-2">
               {topTransactions.map((t, i) => (
@@ -193,7 +240,7 @@ export default function StatsPage() {
 
         {/* Debt Breakdown */}
         {debtBreakdown.length > 0 && (
-          <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <div className="bg-white rounded-2xl p-4 shadow-sm animate-scale-in" style={{ animationDelay: '320ms' }}>
             <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-4">Debt breakdown</p>
             <div className="flex flex-col gap-4">
               {debtBreakdown.map(b => {

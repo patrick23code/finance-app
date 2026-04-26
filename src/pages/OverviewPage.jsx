@@ -5,6 +5,7 @@ import { useCollection, addDocument, updateDocument, deleteDocument } from '../h
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../constants/categories'
 import { useCountUp } from '../hooks/useCountUp'
 import BankLogo from '../components/BankLogo'
+import MonkeyLogo from '../components/MonkeyLogo'
 
 const DEBT_COLORS = {
   loan: 'bg-stone-700',
@@ -76,6 +77,13 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
       <div className="max-w-md mx-auto px-4 pt-14">
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <MonkeyLogo size={32} />
+            <div className="flex flex-col gap-0.5">
+              <h1 className="text-base font-bold text-stone-800">MonkeyBoss</h1>
+              <p className="text-stone-400 text-xs">{dateLabel}</p>
+            </div>
+          </div>
           <div className="flex items-center gap-2">
             <button onClick={() => setShowSettings(true)} className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm">
               <Settings size={20} className="text-stone-600" />
@@ -83,11 +91,10 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
             <button onClick={() => onNavigate('add')} className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm">
               <Plus size={20} className="text-stone-600" />
             </button>
-            <p className="text-stone-500 text-sm">{dateLabel}</p>
+            <button onClick={logout} className="w-9 h-9 rounded-full bg-stone-200 flex items-center justify-center">
+              <img src={user?.photoURL} alt="" className="w-9 h-9 rounded-full object-cover" onError={e => e.target.style.display='none'} />
+            </button>
           </div>
-          <button onClick={logout} className="w-9 h-9 rounded-full bg-stone-200 flex items-center justify-center mt-1">
-            <img src={user?.photoURL} alt="" className="w-9 h-9 rounded-full object-cover" onError={e => e.target.style.display='none'} />
-          </button>
         </div>
 
         {/* Total Balance Card */}
