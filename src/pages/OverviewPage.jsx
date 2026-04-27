@@ -94,8 +94,8 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
     <div className="min-h-svh bg-slate-50 pb-24">
       <div className="max-w-md mx-auto px-5 pt-6">
         {/* Header */}
-        <div className="relative flex items-center justify-center mb-4">
-          <MonkeyLogo size={56} />
+        <div className="relative flex items-center justify-center mb-6">
+          <MonkeyLogo size={42} className="text-slate-900" />
           <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2">
             <button onClick={() => setShowSettings(true)} className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center shadow-sm border border-slate-100 active:scale-95 transition-transform">
               <Settings size={18} className="text-slate-700" />
