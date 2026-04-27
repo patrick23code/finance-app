@@ -8,9 +8,15 @@ import BankLogo from '../components/BankLogo'
 import MonkeyLogo from '../components/MonkeyLogo'
 
 const DEBT_COLORS = {
-  loan: 'bg-stone-700',
-  credit_card: 'bg-orange-400',
-  personal: 'bg-rose-300',
+  loan: 'bg-slate-500',
+  credit_card: 'bg-amber-400',
+  personal: 'bg-emerald-400',
+}
+
+const DEBT_CARD_STYLES = {
+  credit_card: { bg: 'bg-amber-50', border: 'border-amber-400', icon: 'bg-amber-400' },
+  loan: { bg: 'bg-slate-50', border: 'border-slate-400', icon: 'bg-slate-400' },
+  personal: { bg: 'bg-emerald-50', border: 'border-emerald-400', icon: 'bg-emerald-400' },
 }
 
 const DEBT_LABELS = {
@@ -70,40 +76,40 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
 
   const animatedTotal = useCountUp(totals.total)
 
-  if (loading) return <div className="flex items-center justify-center min-h-svh bg-[#E8E4DE]"><div className="text-stone-400">Loading...</div></div>
+  if (loading) return <div className="flex items-center justify-center min-h-svh bg-white"><div className="text-slate-400">Loading...</div></div>
 
   return (
-    <div className="min-h-svh bg-[#E8E4DE] pb-24">
+    <div className="min-h-svh bg-white pb-24">
       <div className="max-w-md mx-auto px-4 pt-14">
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div className="flex items-center gap-3">
             <MonkeyLogo size={32} />
             <div className="flex flex-col gap-0.5">
-              <h1 className="text-base font-bold text-stone-800">MonkeyBoss</h1>
-              <p className="text-stone-400 text-xs">{dateLabel}</p>
+              <h1 className="text-base font-bold text-slate-800">MonkeyBoss</h1>
+              <p className="text-slate-400 text-xs">{dateLabel}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setShowSettings(true)} className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm">
-              <Settings size={20} className="text-stone-600" />
+            <button onClick={() => setShowSettings(true)} className="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center">
+              <Settings size={20} className="text-slate-600" />
             </button>
-            <button onClick={() => onNavigate('add')} className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm">
-              <Plus size={20} className="text-stone-600" />
+            <button onClick={() => onNavigate('add')} className="w-9 h-9 rounded-full bg-cyan-400 flex items-center justify-center shadow-sm">
+              <Plus size={20} className="text-white" />
             </button>
-            <button onClick={logout} className="w-9 h-9 rounded-full bg-stone-200 flex items-center justify-center">
+            <button onClick={logout} className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden">
               <img src={user?.photoURL} alt="" className="w-9 h-9 rounded-full object-cover" onError={e => e.target.style.display='none'} />
             </button>
           </div>
         </div>
 
         {/* Total Debts Card */}
-        <div className="bg-gradient-to-br from-stone-50 to-orange-50 rounded-2xl p-4 mb-4 shadow-sm animate-scale-in border border-stone-100/50">
-          <p className="text-stone-500 text-xs font-medium tracking-wide uppercase mb-1">Total debts</p>
-          <p className="text-4xl font-bold text-stone-800 tracking-tight mb-3">{fmt(animatedTotal)}</p>
+        <div className="bg-cyan-50 rounded-2xl p-5 mb-6 shadow-sm animate-scale-in border-l-4 border-cyan-400">
+          <p className="text-cyan-700 text-xs font-semibold tracking-wide uppercase mb-1">Total debts</p>
+          <p className="text-4xl font-bold text-slate-800 tracking-tight mb-3">{fmt(animatedTotal)}</p>
 
           {totals.total > 0 && (
-            <div className="w-full h-2 rounded-full overflow-hidden flex mb-2">
+            <div className="w-full h-2 rounded-full overflow-hidden flex mb-2 bg-white">
               {Object.entries(totals.byType).map(([type, val]) => {
                 const pct = totals.total ? (val / totals.total) * 100 : 0
                 return pct > 0 ? (
@@ -113,7 +119,7 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
             </div>
           )}
 
-          <div className="flex gap-4 text-xs text-stone-500">
+          <div className="flex gap-4 text-xs text-slate-600 font-medium">
             {Object.entries(totals.byType).map(([type, val]) =>
               val > 0 ? (
                 <span key={type}>{DEBT_LABELS[type]} {fmtShort(val)}</span>
@@ -126,13 +132,13 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
         {Object.entries(byType).map(([type, items], idx) => (
           <div key={type} className="mb-4 animate-fade-in-up" style={{ animationDelay: `${idx * 60}ms` }}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-stone-500 tracking-wide uppercase">
-                {DEBT_LABELS[type]} · {items.length}
+              <span className="text-sm font-bold text-slate-700 tracking-tight">
+                {DEBT_LABELS[type]} <span className="text-slate-400 font-medium">({items.length})</span>
               </span>
-              <span className="text-xs text-stone-500">{fmt(items.reduce((s, d) => s + (d.remaining || 0), 0))}</span>
+              <span className="text-xs text-slate-500 font-medium">{fmt(items.reduce((s, d) => s + (d.remaining || 0), 0))}</span>
             </div>
             {type === 'personal' ? (
-              <div className="bg-gradient-to-br from-white to-rose-50 rounded-2xl overflow-hidden shadow-sm border border-stone-100/50">
+              <div className="bg-emerald-50 rounded-2xl overflow-hidden shadow-sm border-l-4 border-emerald-400">
                 {items.map((d, i) => (
                   <PersonalDebtRow key={d.id} debt={d} last={i === items.length - 1} onClick={() => onDebtClick(d)} />
                 ))}
@@ -149,12 +155,12 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
 
         {debts.length === 0 && (
           <div className="text-center py-16">
-            <TrendingDown size={40} className="text-stone-300 mx-auto mb-3" />
-            <p className="text-stone-400 font-medium">No debts added yet</p>
-            <p className="text-stone-400 text-sm mt-1">Tap Add to get started</p>
+            <TrendingDown size={40} className="text-slate-300 mx-auto mb-3" />
+            <p className="text-slate-500 font-medium">No debts added yet</p>
+            <p className="text-slate-400 text-sm mt-1">Tap Add to get started</p>
             <button
               onClick={() => onNavigate('add')}
-              className="mt-4 bg-stone-800 text-white px-6 py-3 rounded-2xl text-sm font-semibold"
+              className="mt-4 bg-cyan-400 text-white px-6 py-3 rounded-2xl text-sm font-semibold shadow-sm"
             >
               Add your first debt
             </button>
@@ -199,21 +205,21 @@ function PersonalDebtRow({ debt, last, onClick }) {
           <span className="text-white font-bold text-sm">{initial}</span>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-stone-800 text-[15px]">{debt.person || debt.name}</p>
-          <p className="text-xs text-stone-400 truncate">
+          <p className="font-bold text-slate-800 text-[15px]">{debt.person || debt.name}</p>
+          <p className="text-xs text-slate-500 truncate">
             {debt.for && `${debt.for}`}{since && ` · since ${since}`}
           </p>
         </div>
         <div className="text-right flex-shrink-0">
-          <p className={`font-bold text-[15px] ${isOwesYou ? 'text-emerald-600' : 'text-stone-800'}`}>
+          <p className={`font-bold text-[15px] ${isOwesYou ? 'text-emerald-600' : 'text-slate-800'}`}>
             {isOwesYou ? '+' : ''}{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(debt.remaining)}
           </p>
-          <p className={`text-[10px] font-semibold tracking-wide ${isOwesYou ? 'text-emerald-500' : 'text-stone-400'}`}>
+          <p className={`text-[10px] font-bold tracking-wide ${isOwesYou ? 'text-emerald-500' : 'text-slate-500'}`}>
             {isOwesYou ? 'OWES YOU' : 'YOU OWE'}
           </p>
         </div>
       </div>
-      {!last && <div className="h-px bg-stone-100 mx-4" />}
+      {!last && <div className="h-px bg-emerald-200/40 mx-4" />}
     </>
   )
 }
@@ -233,32 +239,27 @@ function DebtCard({ debt, color, onClick }) {
     return () => clearTimeout(t)
   }, [pct])
 
-  const gradients = {
-    'credit_card': 'from-white to-orange-50',
-    'loan': 'from-white to-stone-100',
-    'personal': 'from-white to-rose-50',
-  }
-  const gradientClass = gradients[debt.type] || 'from-white to-stone-50'
+  const styles = DEBT_CARD_STYLES[debt.type] || DEBT_CARD_STYLES.loan
 
   return (
-    <div className={`bg-gradient-to-br ${gradientClass} rounded-2xl p-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer border border-stone-100/50`} onClick={onClick}>
+    <div className={`${styles.bg} rounded-2xl p-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer border-l-4 ${styles.border}`} onClick={onClick}>
       <div className="flex items-start justify-between mb-1">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
             <BankLogo bankId={debt.issuerId} bankName={debt.bank} size={20} />
-            {debt.bank && <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide">{debt.bank}</p>}
+            {debt.bank && <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">{debt.bank}</p>}
           </div>
-          <p className="font-semibold text-stone-800">
+          <p className="font-bold text-slate-800">
             {debt.name}
-            {debt.last4 && <span className="text-stone-400 font-normal"> ·{debt.last4}</span>}
+            {debt.last4 && <span className="text-slate-400 font-normal"> ·{debt.last4}</span>}
           </p>
         </div>
         <div className="text-right">
-          <p className="font-bold text-stone-800">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(debt.remaining)}</p>
+          <p className="font-bold text-slate-800 text-lg">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(debt.remaining)}</p>
           {isCC && debt.creditLimit && (
-            <p className="text-[10px] text-stone-400">of {debt.creditLimit >= 1000 ? `$${(debt.creditLimit/1000).toFixed(0)}k` : `$${debt.creditLimit}`}</p>
+            <p className="text-[10px] text-slate-500">of {debt.creditLimit >= 1000 ? `$${(debt.creditLimit/1000).toFixed(0)}k` : `$${debt.creditLimit}`}</p>
           )}
-          {!isCC && <p className="text-[10px] text-stone-400">remaining</p>}
+          {!isCC && <p className="text-[10px] text-slate-500">remaining</p>}
         </div>
       </div>
 
@@ -278,7 +279,7 @@ function DebtCard({ debt, color, onClick }) {
           })}
         </div>
       ) : (
-        <div className="w-full h-1.5 bg-stone-100 rounded-full mt-3 mb-2">
+        <div className="w-full h-1.5 bg-white/60 rounded-full mt-3 mb-2">
           <div
             className="h-full rounded-full"
             style={{
@@ -290,7 +291,7 @@ function DebtCard({ debt, color, onClick }) {
         </div>
       )}
 
-      <div className="flex justify-between text-xs text-stone-400">
+      <div className="flex justify-between text-xs text-slate-500 font-medium">
         <span>
           {isCC && available !== null
             ? `${Math.round(pct)}% used · $${available.toLocaleString()} available`
@@ -753,7 +754,7 @@ function RecurringFormModal({ item, payFromOptions, userId, onClose }) {
   return (
     <>
       <div className="fixed inset-0 bg-black/40 z-50 animate-fade-in" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#E8E4DE] rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
         <div className="max-w-md mx-auto px-4 pt-4 pb-20">
           <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-4" />
 
@@ -978,7 +979,7 @@ function CategoryEditor({ category, onClose, onDelete, onSave }) {
   return (
     <>
       <div className="fixed inset-0 bg-black/40 z-50 animate-fade-in" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#E8E4DE] rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
         <div className="max-w-md mx-auto px-4 pt-4 pb-20">
           <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-4" />
 
@@ -1043,7 +1044,7 @@ function AddCategoryForm({ type, onClose, onAdd }) {
   return (
     <>
       <div className="fixed inset-0 bg-black/40 z-50 animate-fade-in" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#E8E4DE] rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
         <div className="max-w-md mx-auto px-4 pt-4 pb-20">
           <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-4" />
 

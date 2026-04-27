@@ -48,26 +48,26 @@ export default function RecurringPage() {
     .slice(0, 5)
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-svh bg-[#E8E4DE]">
-      <div className="text-stone-400">Loading...</div>
+    <div className="flex items-center justify-center min-h-svh bg-white">
+      <div className="text-slate-400">Loading...</div>
     </div>
   )
 
   return (
-    <div className="min-h-svh bg-[#E8E4DE] pb-24 relative">
+    <div className="min-h-svh bg-white pb-24 relative">
       <div className="max-w-md mx-auto px-4 pt-14">
-        <p className="text-stone-500 text-sm mb-1">Monthly fixed</p>
-        <h1 className="text-3xl font-bold text-stone-800 tracking-tight mb-6">Recurring</h1>
+        <p className="text-slate-500 text-sm mb-1">Monthly fixed</p>
+        <h1 className="text-3xl font-bold text-slate-800 tracking-tight mb-6">Recurring</h1>
 
         {/* Summary */}
         {recurring.length > 0 && (
-          <div className="bg-stone-800 rounded-2xl p-4 mb-4 shadow-sm animate-scale-in">
-            <p className="text-stone-400 text-xs font-medium uppercase tracking-wide mb-1">Total monthly commitment</p>
+          <div className="bg-slate-800 rounded-2xl p-5 mb-4 shadow-sm animate-scale-in border-l-4 border-cyan-400">
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-wide mb-1">Total monthly commitment</p>
             <p className="text-4xl font-bold text-white tracking-tight mb-3">{fmt(totalMonthly)}</p>
-            <div className="w-full h-2 bg-stone-700 rounded-full overflow-hidden">
-              <div className="h-full bg-emerald-500 w-full" />
+            <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+              <div className="h-full bg-cyan-400 w-full" />
             </div>
-            <p className="text-stone-500 text-xs mt-2">{recurring.length} recurring expense{recurring.length !== 1 ? 's' : ''}</p>
+            <p className="text-slate-400 text-xs mt-2 font-medium">{recurring.length} recurring expense{recurring.length !== 1 ? 's' : ''}</p>
           </div>
         )}
 
@@ -85,7 +85,7 @@ export default function RecurringPage() {
                 const monthLabel = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()
                 const daysUntil = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24))
                 return (
-                  <div key={d.id} className="bg-gradient-to-br from-white to-blue-50 rounded-2xl p-4 min-w-[140px] shadow-sm flex-shrink-0 animate-scale-in border border-stone-100/50" style={{ animationDelay: `${idx * 50}ms` }}>
+                  <div key={d.id} className="bg-cyan-50 rounded-2xl p-4 min-w-[140px] shadow-sm flex-shrink-0 animate-scale-in border-l-4 border-cyan-400" style={{ animationDelay: `${idx * 50}ms` }}>
                     <p className="text-[10px] font-semibold text-stone-400 mb-1">{monthLabel}</p>
                     <p className="font-semibold text-stone-800 text-sm leading-tight mb-2">{d.name}</p>
                     <p className="font-bold text-stone-800 mb-2">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(d.monthly)}</p>
@@ -123,7 +123,7 @@ export default function RecurringPage() {
                 <div
                   key={item.id}
                   onClick={() => { setEditItem(item); setShowForm(true) }}
-                  className="bg-gradient-to-br from-white to-emerald-50 rounded-2xl p-4 shadow-sm cursor-pointer active:scale-[0.98] transition-all animate-scale-in border border-stone-100/50"
+                  className="bg-emerald-50 rounded-2xl p-4 shadow-sm cursor-pointer active:scale-[0.98] transition-all animate-scale-in border-l-4 border-emerald-400"
                   style={{ animationDelay: `${idx * 40}ms` }}
                 >
                   <div className="flex items-center gap-3 mb-2">
@@ -160,7 +160,7 @@ export default function RecurringPage() {
         <div className="max-w-md mx-auto px-4 flex justify-end">
           <button
             onClick={() => { setEditItem(null); setShowForm(true) }}
-            className="w-14 h-14 bg-stone-800 text-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform pointer-events-auto"
+            className="w-14 h-14 bg-cyan-400 text-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform pointer-events-auto"
           >
             <Plus size={26} />
           </button>
@@ -226,7 +226,7 @@ function RecurringForm({ item, payFromOptions, onClose, userId }) {
   return (
     <>
       <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#E8E4DE] rounded-t-3xl max-h-[92vh] overflow-y-auto">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl max-h-[92vh] overflow-y-auto">
         <div className="max-w-md mx-auto px-4 pt-4 pb-20">
           <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-4" />
 

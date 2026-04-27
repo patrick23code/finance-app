@@ -18,13 +18,13 @@ export default function WealthPage({ onNavigate, onAccountClick }) {
   const totalWealth = accounts.reduce((s, a) => s + (a.balance || 0), 0)
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-svh bg-[#E8E4DE]">
+    <div className="flex items-center justify-center min-h-svh bg-white">
       <div className="text-stone-400">Loading...</div>
     </div>
   )
 
   return (
-    <div className="min-h-svh bg-[#E8E4DE] pb-24">
+    <div className="min-h-svh bg-white pb-24">
       <div className="max-w-md mx-auto px-4 pt-14">
         <p className="text-stone-500 text-sm mb-1">Net worth</p>
         <h1 className="text-3xl font-bold text-stone-800 tracking-tight mb-6">Wealth</h1>
@@ -125,7 +125,7 @@ function AccountEditSheet({ account, onClose, userId }) {
   return (
     <>
       <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#E8E4DE] rounded-t-3xl max-h-[92vh] overflow-y-auto">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl max-h-[92vh] overflow-y-auto">
         <div className="max-w-md mx-auto px-4 pt-4 pb-20">
           <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-4" />
 

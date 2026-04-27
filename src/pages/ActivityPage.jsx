@@ -105,36 +105,36 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
   const animatedExpenses = useCountUp(expenses, 700)
   const animatedBalance = useCountUp(totalBalance, 800)
 
-  if (loading) return <div className="flex items-center justify-center min-h-svh bg-[#E8E4DE]"><div className="text-stone-400">Loading...</div></div>
+  if (loading) return <div className="flex items-center justify-center min-h-svh bg-white"><div className="text-slate-400">Loading...</div></div>
 
   return (
-    <div className="min-h-svh bg-[#E8E4DE] pb-24 relative">
+    <div className="min-h-svh bg-white pb-24 relative">
       <div className="max-w-md mx-auto px-4 pt-14">
         {selectedDay && (
-          <p className="text-sm text-stone-500 mb-2">
+          <p className="text-sm text-slate-500 mb-2">
             {new Date(selectedDay + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
           </p>
         )}
         {/* Month Navigator */}
         <div className="flex items-center justify-between mb-4">
-          <button onClick={() => setOffset(o => o - 1)} className="w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-sm active:scale-95 transition-transform">
-            <ChevronLeft size={18} className="text-stone-600" />
+          <button onClick={() => setOffset(o => o - 1)} className="w-9 h-9 flex items-center justify-center rounded-full bg-slate-50 active:scale-95 transition-transform">
+            <ChevronLeft size={18} className="text-slate-600" />
           </button>
-          <h1 className="text-xl font-bold text-stone-800 tracking-tight">{monthLabel}</h1>
+          <h1 className="text-xl font-bold text-slate-800 tracking-tight">{monthLabel}</h1>
           <button
             onClick={() => setOffset(o => o + 1)}
             disabled={offset >= 0}
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-sm active:scale-95 transition-transform disabled:opacity-30"
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-slate-50 active:scale-95 transition-transform disabled:opacity-30"
           >
-            <ChevronRight size={18} className="text-stone-600" />
+            <ChevronRight size={18} className="text-slate-600" />
           </button>
         </div>
 
         {/* Calendar Grid */}
-        <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm animate-scale-in">
+        <div className="bg-cyan-50 rounded-2xl p-4 mb-4 shadow-sm animate-scale-in border-l-4 border-cyan-400">
           <div className="grid grid-cols-7 gap-1 mb-2">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="text-center text-xs font-semibold text-stone-400 py-2">
+              <div key={day} className="text-center text-xs font-semibold text-slate-500 py-2">
                 {day}
               </div>
             ))}
@@ -158,12 +158,12 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
                     !day
                       ? ''
                       : isSelected
-                      ? 'bg-stone-800 text-white shadow-md'
+                      ? 'bg-cyan-500 text-white shadow-md'
                       : isToday
-                      ? 'bg-orange-200 text-stone-800'
+                      ? 'bg-amber-200 text-slate-800'
                       : hasTransaction
-                      ? 'bg-stone-50 text-stone-700 hover:bg-stone-100'
-                      : 'text-stone-400 hover:bg-stone-50'
+                      ? 'bg-white text-slate-700 hover:bg-slate-50'
+                      : 'text-slate-400 hover:bg-white'
                   }`}
                 >
                   {day && (
@@ -183,7 +183,7 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
           {selectedDay && (
             <button
               onClick={() => setSelectedDay(null)}
-              className="mt-3 w-full py-2 text-sm text-stone-600 bg-stone-100 rounded-lg font-medium hover:bg-stone-200 transition-colors"
+              className="mt-3 w-full py-2 text-sm text-cyan-700 bg-white rounded-lg font-semibold transition-colors"
             >
               Clear filter
             </button>
@@ -191,20 +191,20 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
         </div>
 
         {/* Summary Card */}
-        <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm animate-scale-in" style={{ animationDelay: '60ms' }}>
+        <div className="bg-emerald-50 rounded-2xl p-4 mb-4 shadow-sm animate-scale-in border-l-4 border-emerald-400" style={{ animationDelay: '60ms' }}>
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1 flex flex-col items-center">
-              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-0.5">Income</p>
+              <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide mb-0.5">Income</p>
               <p className="text-lg font-bold text-emerald-600">+${Math.round(animatedIncome).toLocaleString()}</p>
             </div>
-            <div className="w-px bg-stone-100 self-stretch mx-1" />
+            <div className="w-px bg-emerald-200 self-stretch mx-1" />
             <div className="flex-1 flex flex-col items-center">
-              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-0.5">Expenses</p>
+              <p className="text-[10px] font-bold text-red-700 uppercase tracking-wide mb-0.5">Expenses</p>
               <p className="text-lg font-bold text-red-500">-${Math.round(animatedExpenses).toLocaleString()}</p>
             </div>
-            <div className="w-px bg-stone-100 self-stretch mx-1" />
+            <div className="w-px bg-emerald-200 self-stretch mx-1" />
             <div className="flex-1 flex flex-col items-center">
-              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-0.5">Balance</p>
+              <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wide mb-0.5">Balance</p>
               <p className={`text-lg font-bold ${totalBalance >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                 {totalBalance >= 0 ? '+' : ''}{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(animatedBalance)}
               </p>
@@ -216,7 +216,7 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
 
         {/* Transaction List */}
         {grouped.length === 0 ? (
-          <div className="text-center py-12 text-stone-400">
+          <div className="text-center py-12 text-slate-400">
             <p className="font-medium">No transactions yet</p>
             <p className="text-sm mt-1">Tap Quick add to log your first transaction</p>
           </div>
@@ -224,10 +224,10 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
           grouped.map(([date, txns], idx) => (
             <div key={date} className="mb-4 animate-fade-in-up" style={{ animationDelay: `${idx * 50}ms` }}>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-stone-500 tracking-wide">{formatDateLabel(date)}</span>
-                <span className="text-xs text-stone-400">{txns.length} {txns.length === 1 ? 'entry' : 'entries'}</span>
+                <span className="text-xs font-bold text-slate-700 tracking-tight">{formatDateLabel(date)}</span>
+                <span className="text-xs text-slate-400 font-medium">{txns.length} {txns.length === 1 ? 'entry' : 'entries'}</span>
               </div>
-              <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+              <div className="bg-slate-50 rounded-2xl overflow-hidden shadow-sm border-l-4 border-slate-300">
                 {txns.map((t, i) => {
                   const isSwipedOpen = swiped === t.id
 
@@ -262,18 +262,18 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
                   const cat = CATEGORY_MAP[t.category] || DEFAULT_CAT
 
                   return (
-                    <div key={t.id} className={`relative overflow-hidden ${i < txns.length - 1 ? 'border-b border-stone-100' : ''}`}
+                    <div key={t.id} className={`relative overflow-hidden ${i < txns.length - 1 ? 'border-b border-slate-200/50' : ''}`}
                       onTouchStart={(e) => handlers.onTouchStart(t.id, e)}
                       onTouchMove={(e) => handlers.onTouchMove(t.id, e)}
                       onTouchEnd={() => handlers.onTouchEnd(t.id)}
                     >
-                      <div onClick={() => onEditTransaction?.(t)} className={`flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-stone-50 transition-transform ${isSwipedOpen ? '-translate-x-16' : ''}`}>
-                        <div className={`w-10 h-10 rounded-full ${cat.color} flex items-center justify-center text-lg flex-shrink-0`}>
+                      <div onClick={() => onEditTransaction?.(t)} className={`flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-slate-100 transition-transform ${isSwipedOpen ? '-translate-x-16' : ''}`}>
+                        <div className={`w-10 h-10 rounded-xl ${cat.color} flex items-center justify-center text-lg flex-shrink-0`}>
                           {cat.emoji}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-stone-800 text-sm">{t.name}</p>
-                          <p className="text-xs text-stone-400 truncate">
+                          <p className="font-bold text-slate-800 text-sm">{t.name}</p>
+                          <p className="text-xs text-slate-500 truncate">
                             {t.category.charAt(0).toUpperCase() + t.category.slice(1)}
                             {t.cardName && ` · ${t.cardName}`}
                           </p>
@@ -301,7 +301,7 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
         <div className="max-w-md mx-auto px-4 flex justify-end">
           <button
             onClick={() => onNavigate('add-transaction')}
-            className="w-14 h-14 bg-stone-800 text-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform pointer-events-auto"
+            className="w-14 h-14 bg-cyan-400 text-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform pointer-events-auto"
           >
             <Plus size={26} />
           </button>
