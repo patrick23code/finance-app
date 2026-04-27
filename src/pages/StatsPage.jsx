@@ -15,6 +15,15 @@ const DEBT_COLORS = {
   personal: '#fda4af',
 }
 
+const BG_GRADIENT = 'linear-gradient(135deg, #3b0764 0%, #6d28d9 50%, #4c1d95 100%)'
+
+const glassCard = (borderRgba, accentHex) => ({
+  background: 'rgba(255,255,255,0.08)',
+  backdropFilter: 'blur(12px)',
+  border: `1px solid ${borderRgba}`,
+  borderLeft: `4px solid ${accentHex}`,
+})
+
 function fmt(n) {
   if (Math.abs(n) >= 1000) return `$${(n / 1000).toFixed(1)}k`
   return `$${n.toLocaleString()}`
@@ -107,12 +116,12 @@ export default function StatsPage() {
   const animatedIncome = useCountUp(thisMonthIncome, 800)
   const animatedDaily = useCountUp(dailyAverage, 800)
 
-  if (dLoading || tLoading || aLoading) return <div className="flex items-center justify-center min-h-svh" style={{ background: 'linear-gradient(135deg, #3b0764 0%, #6d28d9 50%, #4c1d95 100%)' }}><div className="text-purple-200">Loading...</div></div>
+  if (dLoading || tLoading || aLoading) return <div className="flex items-center justify-center min-h-svh" style={{ background: BG_GRADIENT }}><div className="text-purple-200">Loading...</div></div>
 
   return (
-    <div className="min-h-svh pb-24 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #3b0764 0%, #6d28d9 50%, #4c1d95 100%)' }}>
+    <div className="min-h-svh pb-24 relative overflow-hidden" style={{ background: BG_GRADIENT }}>
       {/* Decorative stats symbols background */}
-      <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none select-none overflow-hidden" aria-hidden="true">
         <span className="absolute text-6xl opacity-5 top-6 left-4">📊</span>
         <span className="absolute text-5xl opacity-5 top-12 right-8">📈</span>
         <span className="absolute text-7xl opacity-5 top-28 left-1/2 -translate-x-1/2">💰</span>
@@ -139,7 +148,7 @@ export default function StatsPage() {
         <h1 className="text-3xl font-bold text-white tracking-tight mb-6">Stats</h1>
 
         {/* Net Worth Card */}
-        <div className="rounded-2xl p-5 mb-4 shadow-lg animate-scale-in border-l-4 border-cyan-400" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.15)', borderLeft: '4px solid #22d3ee' }}>
+        <div className="rounded-2xl p-5 mb-4 shadow-lg animate-scale-in" style={glassCard('rgba(255,255,255,0.15)', '#22d3ee')}>
           <p className="text-purple-300 text-xs font-medium uppercase tracking-wide mb-3">Net worth</p>
           <p className={`text-4xl font-bold tracking-tight mb-4 ${netWorth >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
             {netWorth >= 0 ? '+' : ''}{fmtFull(animatedNetWorth)}
@@ -158,14 +167,14 @@ export default function StatsPage() {
 
         {/* Income vs Expense */}
         <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="rounded-2xl p-4 shadow-lg animate-scale-in" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', border: '1px solid rgba(52,211,153,0.3)', borderLeft: '4px solid #34d399', animationDelay: '40ms' }}>
+          <div className="rounded-2xl p-4 shadow-lg animate-scale-in" style={{ ...glassCard('rgba(52,211,153,0.3)', '#34d399'), animationDelay: '40ms' }}>
             <p className="text-[10px] font-bold text-emerald-300 uppercase tracking-wide mb-2">Income</p>
             <p className="text-2xl font-bold text-emerald-300 mb-2">{fmtFull(animatedIncome)}</p>
             <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
               <div className="h-full bg-emerald-400" style={{ width: '100%' }} />
             </div>
           </div>
-          <div className="rounded-2xl p-4 shadow-lg animate-scale-in" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', border: '1px solid rgba(248,113,113,0.3)', borderLeft: '4px solid #f87171', animationDelay: '80ms' }}>
+          <div className="rounded-2xl p-4 shadow-lg animate-scale-in" style={{ ...glassCard('rgba(248,113,113,0.3)', '#f87171'), animationDelay: '80ms' }}>
             <p className="text-[10px] font-bold text-red-300 uppercase tracking-wide mb-2">Expense</p>
             <p className="text-2xl font-bold text-red-300 mb-2">{fmtFull(animatedMonthly)}</p>
             <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
@@ -176,14 +185,14 @@ export default function StatsPage() {
 
         {/* Savings & Velocity */}
         <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="rounded-2xl p-4 shadow-lg animate-scale-in" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', border: '1px solid rgba(34,211,238,0.3)', borderLeft: '4px solid #22d3ee', animationDelay: '120ms' }}>
+          <div className="rounded-2xl p-4 shadow-lg animate-scale-in" style={{ ...glassCard('rgba(34,211,238,0.3)', '#22d3ee'), animationDelay: '120ms' }}>
             <p className="text-[10px] font-bold text-cyan-300 uppercase tracking-wide mb-2">Savings Rate</p>
             <p className={`text-2xl font-bold mb-2 ${savingsRate >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
               {savingsRate >= 0 ? '+' : ''}{savingsRate}%
             </p>
             <p className="text-xs text-purple-200 font-medium">{fmtFull(thisMonthIncome - thisMonthExpenses)}</p>
           </div>
-          <div className="rounded-2xl p-4 shadow-lg animate-scale-in" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', border: '1px solid rgba(251,191,36,0.3)', borderLeft: '4px solid #fbbf24', animationDelay: '160ms' }}>
+          <div className="rounded-2xl p-4 shadow-lg animate-scale-in" style={{ ...glassCard('rgba(251,191,36,0.3)', '#fbbf24'), animationDelay: '160ms' }}>
             <p className="text-[10px] font-bold text-amber-300 uppercase tracking-wide mb-2">Daily Average</p>
             <p className="text-2xl font-bold text-white mb-2">{fmtFull(animatedDaily)}</p>
             <p className="text-xs text-purple-200 font-medium">{daysLeftInMonth} days left</p>
@@ -191,7 +200,7 @@ export default function StatsPage() {
         </div>
 
         {/* Monthly Spending Trend */}
-        <div className="rounded-2xl p-5 mb-4 shadow-lg animate-scale-in" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', border: '1px solid rgba(244,114,182,0.3)', borderLeft: '4px solid #f472b6', animationDelay: '200ms' }}>
+        <div className="rounded-2xl p-5 mb-4 shadow-lg animate-scale-in" style={{ ...glassCard('rgba(244,114,182,0.3)', '#f472b6'), animationDelay: '200ms' }}>
           <p className="text-[10px] font-semibold text-pink-300 uppercase tracking-wide mb-3">Monthly spending trend</p>
           <p className="text-2xl font-bold text-white tracking-tight mb-4">{fmtFull(animatedMonthly)}</p>
           <ResponsiveContainer width="100%" height={100}>
@@ -215,7 +224,7 @@ export default function StatsPage() {
 
         {/* Category Breakdown */}
         {categoryBreakdown.length > 0 && (
-          <div className="rounded-2xl p-5 mb-4 shadow-lg animate-scale-in" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', border: '1px solid rgba(167,139,250,0.3)', borderLeft: '4px solid #a78bfa', animationDelay: '240ms' }}>
+          <div className="rounded-2xl p-5 mb-4 shadow-lg animate-scale-in" style={{ ...glassCard('rgba(167,139,250,0.3)', '#a78bfa'), animationDelay: '240ms' }}>
             <p className="text-[10px] font-semibold text-purple-300 uppercase tracking-wide mb-3">Spending by category</p>
             <div className="flex flex-col gap-2">
               {categoryBreakdown.map((item, idx) => {
@@ -249,11 +258,11 @@ export default function StatsPage() {
 
         {/* Top Transactions */}
         {topTransactions.length > 0 && (
-          <div className="rounded-2xl p-5 mb-4 shadow-lg animate-scale-in" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', border: '1px solid rgba(96,165,250,0.3)', borderLeft: '4px solid #60a5fa', animationDelay: '280ms' }}>
+          <div className="rounded-2xl p-5 mb-4 shadow-lg animate-scale-in" style={{ ...glassCard('rgba(96,165,250,0.3)', '#60a5fa'), animationDelay: '280ms' }}>
             <p className="text-[10px] font-semibold text-blue-300 uppercase tracking-wide mb-3">Top transactions this month</p>
             <div className="flex flex-col gap-2">
               {topTransactions.map((t, i) => (
-                <div key={t.id} className="flex items-center justify-between py-2 last:border-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                <div key={t.id} className="flex items-center justify-between py-2 border-b border-white/10 last:border-0">
                   <span className="text-sm text-purple-100">{t.name}</span>
                   <span className="font-semibold text-white">{fmtFull(t.amount)}</span>
                 </div>
@@ -264,7 +273,7 @@ export default function StatsPage() {
 
         {/* Debt Breakdown */}
         {debtBreakdown.length > 0 && (
-          <div className="rounded-2xl p-5 shadow-lg animate-scale-in" style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', border: '1px solid rgba(251,191,36,0.3)', borderLeft: '4px solid #fbbf24', animationDelay: '320ms' }}>
+          <div className="rounded-2xl p-5 shadow-lg animate-scale-in" style={{ ...glassCard('rgba(251,191,36,0.3)', '#fbbf24'), animationDelay: '320ms' }}>
             <p className="text-[10px] font-semibold text-amber-300 uppercase tracking-wide mb-4">Debt breakdown</p>
             <div className="flex flex-col gap-4">
               {debtBreakdown.map(b => {
