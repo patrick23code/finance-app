@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useCollection } from '../hooks/useFirestore'
 import { EXPENSE_CATEGORIES } from '../constants/categories'
 import { useCountUp } from '../hooks/useCountUp'
+import MonkeyLogo from '../components/MonkeyLogo'
 
 const CAT_COLOR_MAP = Object.fromEntries(EXPENSE_CATEGORIES.map(c => [c.id, c.color]))
 const CAT_EMOJI_MAP = Object.fromEntries(EXPENSE_CATEGORIES.map(c => [c.id, c.emoji]))
@@ -110,7 +111,12 @@ export default function StatsPage() {
 
   return (
     <div className="min-h-svh bg-slate-50 pb-24">
-      <div className="max-w-md mx-auto px-4 pt-14">
+      <div className="max-w-md mx-auto px-5 pt-6">
+        {/* Logo Header */}
+        <div className="flex items-center justify-center mb-6">
+          <MonkeyLogo size={42} className="text-slate-900" />
+        </div>
+
         <p className="text-slate-500 text-sm mb-1">Financial overview</p>
         <h1 className="text-3xl font-bold text-slate-800 tracking-tight mb-6">Stats</h1>
 

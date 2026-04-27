@@ -6,6 +6,7 @@ import { useCollection, deleteDocument, updateDocument } from '../hooks/useFires
 import { useSwipeDelete } from '../hooks/useSwipeDelete'
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../constants/categories'
 import { useCountUp } from '../hooks/useCountUp'
+import MonkeyLogo from '../components/MonkeyLogo'
 
 const ALL_CATEGORIES = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES]
 const CATEGORY_MAP = Object.fromEntries(ALL_CATEGORIES.map(c => [c.id, c]))
@@ -110,7 +111,12 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
 
   return (
     <div className="min-h-svh bg-slate-50 pb-24 relative">
-      <div className="max-w-md mx-auto px-4 pt-14">
+      <div className="max-w-md mx-auto px-5 pt-6">
+        {/* Logo Header */}
+        <div className="flex items-center justify-center mb-6">
+          <MonkeyLogo size={42} className="text-slate-900" />
+        </div>
+
         {selectedDay && (
           <p className="text-sm text-slate-500 mb-2">
             {new Date(selectedDay + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
