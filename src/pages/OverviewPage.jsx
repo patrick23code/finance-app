@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { useCollection, addDocument, updateDocument, deleteDocument } from '../hooks/useFirestore'
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../constants/categories'
 import { useCountUp } from '../hooks/useCountUp'
+import { useCategories } from '../hooks/useCategories'
 import BankLogo from '../components/BankLogo'
 import MonkeyLogo from '../components/MonkeyLogo'
 import DonutChart from '../components/DonutChart'
@@ -818,23 +819,25 @@ function RecurringFormModal({ item, payFromOptions, userId, onClose }) {
 }
 
 function CategoriesTab({ onClose }) {
-  const [customExpense, setCustomExpense] = useState([])
-  const [customIncome, setCustomIncome] = useState([])
+  const {
+    expenseCategories, incomeCategories, hidden,
+    hideCategory, unhideCategory, deleteCustom, addCustom, isBuiltIn,
+  } = useCategories()
   const [editingCat, setEditingCat] = useState(null)
   const [showAddForm, setShowAddForm] = useState(false)
   const [addType, setAddType] = useState('expense')
+  const [showHidden, setShowHidden] = useState(false)
 
   function handleEditCategory(cat, type) {
     setEditingCat({ ...cat, type })
   }
 
   function handleDeleteCategory(id, type) {
-    if (type === 'expense') {
-      setCustomExpense(prev => prev.filter(c => c.id !== id))
-    } else {
-      setCustomIncome(prev => prev.filter(c => c.id !== id))
-    }
+    if (isBuiltIn(id)) hideCategory(id)
+    else deleteCustom(id, type)
   }
+
+  const allHiddenBuiltins = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES].filter(c => hidden.includes(c.id))
 
   return (
     <>
@@ -847,11 +850,13 @@ function CategoriesTab({ onClose }) {
             <div className="w-12" />
           </div>
 
+          <p className="text-xs text-stone-500 mb-4">Tap a category to edit or delete it</p>
+
           <div className="flex flex-col gap-4">
       <div>
         <p className="text-sm font-semibold text-stone-700 mb-3">Expense Categories</p>
         <div className="grid grid-cols-4 gap-2">
-          {EXPENSE_CATEGORIES.map(cat => (
+          {expenseCategories.map(cat => (
             <button
               key={cat.id}
               onClick={() => handleEditCategory(cat, 'expense')}
@@ -859,16 +864,6 @@ function CategoriesTab({ onClose }) {
             >
               <p className="text-2xl mb-1">{cat.emoji}</p>
               <p className="text-xs font-medium text-stone-700 leading-tight">{cat.label}</p>
-            </button>
-          ))}
-          {customExpense.map(cat => (
-            <button
-              key={cat.id}
-              onClick={() => handleEditCategory(cat, 'expense')}
-              className="bg-emerald-50 rounded-2xl p-3 shadow-sm text-center cursor-pointer active:scale-95 transition-transform border border-emerald-200"
-            >
-              <p className="text-2xl mb-1">{cat.emoji}</p>
-              <p className="text-xs font-medium text-emerald-700 leading-tight">{cat.label}</p>
             </button>
           ))}
         </div>
@@ -886,7 +881,7 @@ function CategoriesTab({ onClose }) {
       <div>
         <p className="text-sm font-semibold text-stone-700 mb-3">Income Categories</p>
         <div className="grid grid-cols-4 gap-2">
-          {INCOME_CATEGORIES.map(cat => (
+          {incomeCategories.map(cat => (
             <button
               key={cat.id}
               onClick={() => handleEditCategory(cat, 'income')}
@@ -894,16 +889,6 @@ function CategoriesTab({ onClose }) {
             >
               <p className="text-2xl mb-1">{cat.emoji}</p>
               <p className="text-xs font-medium text-stone-700 leading-tight">{cat.label}</p>
-            </button>
-          ))}
-          {customIncome.map(cat => (
-            <button
-              key={cat.id}
-              onClick={() => handleEditCategory(cat, 'income')}
-              className="bg-emerald-50 rounded-2xl p-3 shadow-sm text-center cursor-pointer active:scale-95 transition-transform border border-emerald-200"
-            >
-              <p className="text-2xl mb-1">{cat.emoji}</p>
-              <p className="text-xs font-medium text-emerald-700 leading-tight">{cat.label}</p>
             </button>
           ))}
         </div>
@@ -918,6 +903,32 @@ function CategoriesTab({ onClose }) {
         </button>
       </div>
 
+      {allHiddenBuiltins.length > 0 && (
+        <div>
+          <button
+            onClick={() => setShowHidden(s => !s)}
+            className="text-sm font-semibold text-stone-500 mb-3"
+          >
+            {showHidden ? '▾' : '▸'} Hidden categories ({allHiddenBuiltins.length})
+          </button>
+          {showHidden && (
+            <div className="grid grid-cols-4 gap-2">
+              {allHiddenBuiltins.map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => unhideCategory(cat.id)}
+                  className="bg-stone-100 rounded-2xl p-3 text-center cursor-pointer active:scale-95 transition-transform opacity-50 hover:opacity-100"
+                >
+                  <p className="text-2xl mb-1">{cat.emoji}</p>
+                  <p className="text-xs font-medium text-stone-700 leading-tight">{cat.label}</p>
+                  <p className="text-[9px] text-blue-600 font-semibold mt-1">Restore</p>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {editingCat && (
         <CategoryEditor
           category={editingCat}
@@ -927,10 +938,12 @@ function CategoriesTab({ onClose }) {
             setEditingCat(null)
           }}
           onSave={(updated) => {
-            if (editingCat.type === 'expense') {
-              setCustomExpense(prev => [...prev.filter(c => c.id !== updated.id), updated])
+            if (isBuiltIn(updated.id)) {
+              // Save edits to a built-in by adding a custom override (also hides original)
+              hideCategory(updated.id)
+              addCustom({ ...updated, id: `custom-${updated.id}-${Date.now()}` }, editingCat.type)
             } else {
-              setCustomIncome(prev => [...prev.filter(c => c.id !== updated.id), updated])
+              addCustom(updated, editingCat.type)
             }
             setEditingCat(null)
           }}
@@ -942,11 +955,7 @@ function CategoriesTab({ onClose }) {
           type={addType}
           onClose={() => setShowAddForm(false)}
           onAdd={(newCat) => {
-            if (addType === 'expense') {
-              setCustomExpense(prev => [...prev, newCat])
-            } else {
-              setCustomIncome(prev => [...prev, newCat])
-            }
+            addCustom(newCat, addType)
             setShowAddForm(false)
           }}
         />
