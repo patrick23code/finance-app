@@ -2,9 +2,18 @@ import { useState } from 'react'
 import { Edit2, Trash2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCollection, updateDocument, deleteDocument } from '../hooks/useFirestore'
+import MonkeyLogo from '../components/MonkeyLogo'
 
 const ACCOUNT_ICONS = { checking: '🏦', savings: '💰', cash: '💵' }
 const ACCOUNT_COLORS = { checking: 'bg-blue-100', savings: 'bg-emerald-100', cash: 'bg-yellow-100' }
+
+const DOLLAR_PATTERN = `data:image/svg+xml;utf8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
+  <text x="20" y="30" font-family="system-ui, sans-serif" font-size="22" font-weight="900" fill="%2310b981" opacity="0.07">$</text>
+  <text x="50" y="65" font-family="system-ui, sans-serif" font-size="18" font-weight="900" fill="%2310b981" opacity="0.05">$</text>
+  <text x="5" y="60" font-family="system-ui, sans-serif" font-size="14" font-weight="900" fill="%2310b981" opacity="0.06">$</text>
+</svg>
+`)}`
 
 function fmt(n) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
@@ -24,16 +33,40 @@ export default function WealthPage({ onNavigate, onAccountClick }) {
   )
 
   return (
-    <div className="min-h-svh bg-slate-50 pb-24">
-      <div className="max-w-md mx-auto px-4 pt-14">
-        <p className="text-stone-500 text-sm mb-1">Net worth</p>
-        <h1 className="text-3xl font-bold text-stone-800 tracking-tight mb-6">Wealth</h1>
+    <div
+      className="min-h-svh bg-slate-50 pb-24"
+      style={{
+        backgroundImage: `url("${DOLLAR_PATTERN}")`,
+        backgroundRepeat: 'repeat',
+        backgroundSize: '80px 80px',
+      }}
+    >
+      <div className="max-w-md mx-auto px-5 pt-6">
+        {/* Header with Logo */}
+        <div className="flex items-center justify-center mb-6">
+          <MonkeyLogo size={42} className="text-slate-900" />
+        </div>
 
-        {/* Total */}
-        <div className="bg-stone-800 rounded-2xl p-4 mb-4 shadow-sm">
-          <p className="text-stone-400 text-xs font-medium uppercase tracking-wide mb-1">Total balance</p>
-          <p className="text-4xl font-bold text-white tracking-tight">{fmt(totalWealth)}</p>
-          <p className="text-stone-500 text-xs mt-1">Across {accounts.length} account{accounts.length !== 1 ? 's' : ''}</p>
+        <p className="text-slate-500 text-sm mb-1 font-medium">Net worth</p>
+        <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-6">Wealth</h1>
+
+        {/* Total — Green Gradient */}
+        <div
+          className="rounded-2xl p-6 mb-4 relative overflow-hidden animate-scale-in"
+          style={{
+            background: 'linear-gradient(135deg, #10B981 0%, #059669 50%, #047857 100%)',
+            boxShadow: '0 20px 40px -12px rgba(16, 185, 129, 0.4)',
+          }}
+        >
+          {/* Decorative $ patterns */}
+          <div className="absolute -top-4 -right-4 text-white/10 text-9xl font-black select-none pointer-events-none">$</div>
+          <div className="absolute -bottom-8 -left-2 text-white/5 text-8xl font-black select-none pointer-events-none">$</div>
+
+          <div className="relative">
+            <p className="text-emerald-50 text-[11px] font-bold uppercase tracking-widest mb-2">Total balance</p>
+            <p className="text-[44px] font-bold text-white tracking-tight leading-none mb-2">{fmt(totalWealth)}</p>
+            <p className="text-emerald-100 text-xs font-medium">Across {accounts.length} account{accounts.length !== 1 ? 's' : ''}</p>
+          </div>
         </div>
 
         {/* Accounts list */}
