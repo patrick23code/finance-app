@@ -43,7 +43,7 @@ export default function DebtDetailPage({ debt, onBack, onEditTransaction }) {
   const { data: transactions } = useCollection('transactions', user?.uid)
   const { data: debts } = useCollection('debts', user?.uid)
   const { data: accounts } = useCollection('accounts', user?.uid)
-  const { swiped, setSwiped, handlers } = useSwipeDelete()
+  const { swiped, setSwiped, wasSwipe, handlers } = useSwipeDelete()
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
@@ -208,7 +208,11 @@ export default function DebtDetailPage({ debt, onBack, onEditTransaction }) {
                         onTouchMove={(e) => handlers.onTouchMove(t.id, e)}
                         onTouchEnd={() => handlers.onTouchEnd(t.id)}
                       >
-                        <div onClick={() => onEditTransaction?.(t)} className={`flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-stone-50 transition-transform ${isSwipedOpen ? '-translate-x-16' : ''}`}>
+                        <div onClick={() => {
+                          if (wasSwipe()) return
+                          if (isSwipedOpen) { setSwiped(null); return }
+                          onEditTransaction?.(t)
+                        }} className={`flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-stone-50 transition-transform ${isSwipedOpen ? '-translate-x-16' : ''}`}>
                           <div className={`w-10 h-10 rounded-full ${isPayment ? 'bg-emerald-100' : cat.color} flex items-center justify-center text-lg flex-shrink-0`}>
                             {isPayment ? '💳' : cat.emoji}
                           </div>

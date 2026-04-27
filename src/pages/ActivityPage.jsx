@@ -36,7 +36,7 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
   const { data: transactions, loading } = useCollection('transactions', user?.uid)
   const { data: debts } = useCollection('debts', user?.uid)
   const { data: accounts } = useCollection('accounts', user?.uid)
-  const { swiped, setSwiped, handlers } = useSwipeDelete()
+  const { swiped, setSwiped, wasSwipe, handlers } = useSwipeDelete()
 
   const now = new Date()
   const [offset, setOffset] = useState(0) // 0 = this month, -1 = last month, etc.
@@ -268,7 +268,11 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
                       onTouchMove={(e) => handlers.onTouchMove(t.id, e)}
                       onTouchEnd={() => handlers.onTouchEnd(t.id)}
                     >
-                      <div onClick={() => onEditTransaction?.(t)} className={`flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-slate-100 transition-transform ${isSwipedOpen ? '-translate-x-16' : ''}`}>
+                      <div onClick={() => {
+                        if (wasSwipe()) return
+                        if (isSwipedOpen) { setSwiped(null); return }
+                        onEditTransaction?.(t)
+                      }} className={`flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-slate-100 transition-transform ${isSwipedOpen ? '-translate-x-16' : ''}`}>
                         <div className={`w-10 h-10 rounded-xl ${cat.color} flex items-center justify-center text-lg flex-shrink-0`}>
                           {cat.emoji}
                         </div>
