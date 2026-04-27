@@ -372,33 +372,17 @@ function SettingsSheet({ isOpen, onClose, onNavigate, user, recurring, accounts,
           </div>
 
           {/* Profile Card */}
-          <div className="bg-white rounded-3xl p-6 mb-6 shadow-sm">
-            <div className="flex items-center gap-4 mb-6">
+          <div className="bg-white rounded-3xl p-5 mb-6 shadow-sm">
+            <div className="flex items-center gap-4">
               <img
                 src={user?.photoURL}
                 alt=""
-                className="w-16 h-16 rounded-full object-cover"
+                className="w-14 h-14 rounded-full object-cover"
                 onError={e => e.target.style.display = 'none'}
               />
-              <div className="flex-1">
-                <p className="text-lg font-bold text-stone-800">{user?.displayName || user?.email?.split('@')[0]}</p>
-                <p className="text-sm text-stone-500">{user?.email}</p>
-              </div>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-stone-50 rounded-2xl p-3 text-center">
-                <p className="text-2xl font-bold text-stone-800">{stats.streak}</p>
-                <p className="text-xs text-stone-500 font-medium mt-1">Streak</p>
-              </div>
-              <div className="bg-stone-50 rounded-2xl p-3 text-center">
-                <p className="text-2xl font-bold text-stone-800">{stats.totalDays}</p>
-                <p className="text-xs text-stone-500 font-medium mt-1">Total days</p>
-              </div>
-              <div className="bg-stone-50 rounded-2xl p-3 text-center">
-                <p className="text-2xl font-bold text-stone-800">{stats.transactionCount}</p>
-                <p className="text-xs text-stone-500 font-medium mt-1">This month</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-lg font-bold text-slate-900 truncate">{user?.displayName || user?.email?.split('@')[0]}</p>
+                <p className="text-sm text-slate-500 truncate">{user?.email}</p>
               </div>
             </div>
           </div>
