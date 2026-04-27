@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react'
-import { ChevronLeft, Trash2 } from 'lucide-react'
+import { ChevronLeft, Trash2, Edit2 } from 'lucide-react'
+import { createPortal } from 'react-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCollection, deleteDocument, updateDocument } from '../hooks/useFirestore'
 import { useSwipeDelete } from '../hooks/useSwipeDelete'
 import BankLogo from '../components/BankLogo'
+import IssuerCombobox from '../components/IssuerCombobox'
 
 const CATEGORY_ICONS = {
   cigarettes: { emoji: '🚬', color: 'bg-stone-600' },
@@ -44,6 +46,7 @@ export default function DebtDetailPage({ debt, onBack, onEditTransaction }) {
   const { swiped, setSwiped, handlers } = useSwipeDelete()
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [showEdit, setShowEdit] = useState(false)
 
   const related = useMemo(() => {
     return transactions.filter(t =>
@@ -93,9 +96,14 @@ export default function DebtDetailPage({ debt, onBack, onEditTransaction }) {
               </div>
             </div>
           </div>
-          <button onClick={() => setConfirmDelete(true)} className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-sm">
-            <Trash2 size={20} className="text-red-500" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setShowEdit(true)} className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100">
+              <Edit2 size={18} className="text-blue-600" />
+            </button>
+            <button onClick={() => setConfirmDelete(true)} className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100">
+              <Trash2 size={18} className="text-red-500" />
+            </button>
+          </div>
         </div>
 
         {/* Summary Card — hidden for bank accounts */}
@@ -229,10 +237,10 @@ export default function DebtDetailPage({ debt, onBack, onEditTransaction }) {
         )}
       </div>
 
-      {confirmDelete && (
+      {confirmDelete && createPortal(
         <>
-          <div className="fixed inset-0 bg-black/40 z-50" onClick={() => setConfirmDelete(false)} />
-          <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl max-h-[92vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/40 z-50 animate-fade-in" onClick={() => setConfirmDelete(false)} />
+          <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
             <div className="max-w-md mx-auto px-4 pt-4 pb-20">
               <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-6" />
               <div className="bg-red-50 rounded-2xl p-4">
@@ -247,8 +255,158 @@ export default function DebtDetailPage({ debt, onBack, onEditTransaction }) {
               </div>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
+
+      {showEdit && (
+        <EditDebtSheet debt={debt} onClose={() => setShowEdit(false)} />
+      )}
+    </div>
+  )
+}
+
+function EditDebtSheet({ debt, onClose }) {
+  const isCC = debt.type === 'credit_card'
+  const isAccount = ['checking', 'savings', 'cash'].includes(debt.type)
+  const [name, setName] = useState(debt.name || '')
+  const [issuer, setIssuer] = useState(debt.issuerId ? { id: debt.issuerId, name: debt.bank } : null)
+  const [last4, setLast4] = useState(debt.last4 || '')
+  const [remaining, setRemaining] = useState(String(debt.remaining ?? ''))
+  const [creditLimit, setCreditLimit] = useState(String(debt.creditLimit ?? ''))
+  const [apr, setApr] = useState(String(debt.apr ?? ''))
+  const [monthly, setMonthly] = useState(String(debt.monthly ?? ''))
+  const [dueDay, setDueDay] = useState(String(debt.dueDay ?? ''))
+  const [endDate, setEndDate] = useState(debt.endDate || '')
+  const [originalAmount, setOriginalAmount] = useState(String(debt.originalAmount ?? ''))
+  const [saving, setSaving] = useState(false)
+
+  async function handleSave() {
+    setSaving(true)
+    try {
+      const payload = {
+        name,
+        issuerId: issuer?.id || null,
+        bank: issuer?.name || null,
+      }
+      if (isCC) {
+        payload.last4 = last4 || null
+        payload.remaining = parseFloat(remaining) || 0
+        payload.creditLimit = parseFloat(creditLimit) || null
+        payload.apr = parseFloat(apr) || null
+        payload.monthly = parseFloat(monthly) || null
+        payload.dueDay = parseInt(dueDay) || null
+      } else {
+        payload.remaining = parseFloat(remaining) || 0
+        payload.originalAmount = parseFloat(originalAmount) || null
+        payload.apr = parseFloat(apr) || null
+        payload.monthly = parseFloat(monthly) || null
+        payload.dueDay = parseInt(dueDay) || null
+        payload.endDate = endDate || null
+      }
+      await updateDocument('debts', debt.id, payload)
+      onClose()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return createPortal(
+    <>
+      <div className="fixed inset-0 bg-black/40 z-50 animate-fade-in" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-slate-50 rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
+        <div className="max-w-md mx-auto px-4 pt-4 pb-20">
+          <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-4" />
+
+          <div className="flex items-center justify-between mb-5">
+            <button onClick={onClose} className="text-slate-500 font-medium text-[15px]">Cancel</button>
+            <h2 className="text-[17px] font-bold text-slate-800">Edit {isCC ? 'card' : 'debt'}</h2>
+            <button onClick={handleSave} disabled={saving || !name}
+              className="text-blue-600 font-semibold text-[15px] disabled:text-slate-300">Save</button>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <Field label="Name">
+              <input type="text" value={name} onChange={e => setName(e.target.value)}
+                className="w-full text-[15px] font-semibold text-slate-800 bg-transparent outline-none placeholder:text-slate-300"
+                placeholder="e.g. Freedom Card" />
+            </Field>
+
+            <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
+              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-2">Issuer</p>
+              <IssuerCombobox value={issuer} onChange={setIssuer} />
+            </div>
+
+            {isCC && (
+              <Field label="Last 4 digits">
+                <input type="text" maxLength="4" value={last4} onChange={e => setLast4(e.target.value)}
+                  className="w-full text-[15px] font-semibold text-slate-800 bg-transparent outline-none placeholder:text-slate-300"
+                  placeholder="1234" />
+              </Field>
+            )}
+
+            <Field label={isCC ? 'Current balance' : 'Remaining'}>
+              <DollarInput value={remaining} onChange={setRemaining} />
+            </Field>
+
+            {isCC && (
+              <Field label="Credit limit">
+                <DollarInput value={creditLimit} onChange={setCreditLimit} />
+              </Field>
+            )}
+
+            {!isCC && (
+              <Field label="Original amount">
+                <DollarInput value={originalAmount} onChange={setOriginalAmount} />
+              </Field>
+            )}
+
+            <Field label="APR (%)">
+              <input type="number" inputMode="decimal" value={apr} onChange={e => setApr(e.target.value)}
+                className="w-full text-[15px] font-semibold text-slate-800 bg-transparent outline-none placeholder:text-slate-300"
+                placeholder="0.00" />
+            </Field>
+
+            <Field label={isCC ? 'Min. monthly payment' : 'Monthly payment'}>
+              <DollarInput value={monthly} onChange={setMonthly} />
+            </Field>
+
+            <Field label="Due day of month">
+              <input type="number" min="1" max="31" inputMode="numeric" value={dueDay} onChange={e => setDueDay(e.target.value)}
+                className="w-full text-[15px] font-semibold text-slate-800 bg-transparent outline-none placeholder:text-slate-300"
+                placeholder="15" />
+            </Field>
+
+            {!isCC && (
+              <Field label="End date">
+                <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
+                  className="w-full text-[15px] font-semibold text-slate-800 bg-transparent outline-none" />
+              </Field>
+            )}
+          </div>
+        </div>
+      </div>
+    </>,
+    document.body
+  )
+}
+
+function Field({ label, children }) {
+  return (
+    <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
+      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">{label}</p>
+      {children}
+    </div>
+  )
+}
+
+function DollarInput({ value, onChange }) {
+  return (
+    <div className="flex items-center gap-1">
+      <span className="text-2xl font-bold text-slate-300">$</span>
+      <input type="number" inputMode="decimal" placeholder="0.00"
+        value={value} onChange={e => onChange(e.target.value)}
+        className="flex-1 text-2xl font-bold text-slate-800 bg-transparent outline-none placeholder:text-slate-200" />
     </div>
   )
 }
