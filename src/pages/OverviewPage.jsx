@@ -410,13 +410,6 @@ function SettingsSheet({ isOpen, onClose, onNavigate, user, recurring, accounts,
               description="Manage expense & income categories"
               onClick={() => setActiveModal('categories')}
             />
-            <SettingItem
-              icon={<DollarSign size={20} />}
-              iconBg="bg-emerald-200"
-              label="Account Manager"
-              description="Manage bank accounts"
-              onClick={() => setActiveModal('accounts')}
-            />
           </SettingsSection>
 
           {/* Payments & Planning */}
