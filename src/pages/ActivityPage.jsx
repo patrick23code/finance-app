@@ -299,7 +299,7 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
 
       {createPortal(
         <div className="fixed bottom-24 left-0 right-0 z-40 pointer-events-none">
-          <div className="max-w-md mx-auto px-5 flex justify-start">
+          <div className="max-w-md mx-auto px-5 flex justify-end">
             <button
               onClick={() => onNavigate('add-transaction')}
               className="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center active:scale-95 transition-transform pointer-events-auto"

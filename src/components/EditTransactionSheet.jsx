@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { X, ChevronRight, Trash2, RefreshCcw, ArrowLeftRight } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCollection, updateDocument, deleteDocument } from '../hooks/useFirestore'
-import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../constants/categories'
+import { useCategories } from '../hooks/useCategories'
 
 const ACCOUNT_ICONS = { checking: '🏦', savings: '💰', cash: '💵' }
 
@@ -24,7 +24,8 @@ export default function EditTransactionSheet({ transaction, onClose }) {
 
   const amountRef = useRef(null)
 
-  const categories = txType === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES
+  const { expenseCategories, incomeCategories } = useCategories()
+  const categories = txType === 'income' ? incomeCategories : expenseCategories
   const currentCat = categories.find(c => c.id === txCategory) || { emoji: '📦', label: txCategory || 'None' }
 
   const payFromOptions = [

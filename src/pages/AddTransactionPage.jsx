@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { addDocument, updateDocument, useCollection } from '../hooks/useFirestore'
-import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../constants/categories'
+import { useCategories } from '../hooks/useCategories'
 
 const ACCOUNT_ICONS = { checking: '🏦', savings: '💰', cash: '💵' }
 
@@ -19,7 +19,8 @@ export default function AddTransactionPage({ onNavigate }) {
   const [txTo, setTxTo] = useState('')
   const [txDate, setTxDate] = useState(new Date().toISOString().split('T')[0])
 
-  const categories = txType === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES
+  const { expenseCategories, incomeCategories } = useCategories()
+  const categories = txType === 'income' ? incomeCategories : expenseCategories
 
   const cardOptions = debts.filter(d => d.type === 'credit_card')
   const payFromOptions = [
