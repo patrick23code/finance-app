@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Plus, Trash2, Repeat, Calendar } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCollection, addDocument, updateDocument, deleteDocument } from '../hooks/useFirestore'
@@ -155,18 +156,20 @@ export default function RecurringPage() {
         )}
       </div>
 
-      {/* Floating Add Button */}
-      <div className="fixed bottom-24 left-0 right-0 z-40 pointer-events-none">
-        <div className="max-w-md mx-auto px-4 flex justify-end">
-          <button
-            onClick={() => { setEditItem(null); setShowForm(true) }}
-            className="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center active:scale-95 transition-transform pointer-events-auto"
-            style={{ boxShadow: '0 12px 28px -6px rgba(37, 99, 235, 0.5)' }}
-          >
-            <Plus size={26} />
-          </button>
-        </div>
-      </div>
+      {createPortal(
+        <div className="fixed bottom-24 left-0 right-0 z-40 pointer-events-none">
+          <div className="max-w-md mx-auto px-5 flex justify-start">
+            <button
+              onClick={() => { setEditItem(null); setShowForm(true) }}
+              className="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center active:scale-95 transition-transform pointer-events-auto"
+              style={{ boxShadow: '0 12px 28px -6px rgba(37, 99, 235, 0.5)' }}
+            >
+              <Plus size={26} />
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {showForm && (
         <RecurringForm
