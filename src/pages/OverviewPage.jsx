@@ -95,18 +95,13 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
       <div className="max-w-md mx-auto px-5 pt-6">
         {/* Header */}
         <div className="relative flex items-center justify-center mb-6">
+          <button onClick={() => setShowSettings(true)} className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-2xl bg-white flex items-center justify-center shadow-sm border border-slate-100 active:scale-95 transition-transform">
+            <Settings size={18} className="text-slate-700" />
+          </button>
           <MonkeyLogo size={42} className="text-slate-900" />
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2">
-            <button onClick={() => setShowSettings(true)} className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center shadow-sm border border-slate-100 active:scale-95 transition-transform">
-              <Settings size={18} className="text-slate-700" />
-            </button>
-            <button onClick={() => onNavigate('add')} className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center active:scale-95 transition-transform" style={{ boxShadow: '0 8px 20px -4px rgba(37, 99, 235, 0.45)' }}>
-              <Plus size={20} className="text-white" strokeWidth={2.5} />
-            </button>
-            <button onClick={logout} className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center overflow-hidden active:scale-95 transition-transform">
-              <img src={user?.photoURL} alt="" className="w-10 h-10 rounded-2xl object-cover" onError={e => e.target.style.display='none'} />
-            </button>
-          </div>
+          <button onClick={logout} className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center overflow-hidden active:scale-95 transition-transform">
+            <img src={user?.photoURL} alt="" className="w-10 h-10 rounded-2xl object-cover" onError={e => e.target.style.display='none'} />
+          </button>
         </div>
 
         {/* Hero Total Debts Card */}
@@ -191,6 +186,7 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
         <SettingsSheet
           isOpen={showSettings}
           onClose={() => setShowSettings(false)}
+          onNavigate={onNavigate}
           user={user}
           recurring={recurring}
           accounts={accounts}
@@ -318,7 +314,7 @@ function DebtCard({ debt, color, onClick }) {
   )
 }
 
-function SettingsSheet({ isOpen, onClose, user, recurring, accounts, debts, transactions }) {
+function SettingsSheet({ isOpen, onClose, onNavigate, user, recurring, accounts, debts, transactions }) {
   const [activeModal, setActiveModal] = useState(null)
   const [showRecurringForm, setShowRecurringForm] = useState(false)
   const [editRecurring, setEditRecurring] = useState(null)
@@ -408,6 +404,17 @@ function SettingsSheet({ isOpen, onClose, user, recurring, accounts, debts, tran
           </div>
 
           {/* Settings Sections */}
+
+          {/* Quick Actions */}
+          <SettingsSection title="Quick Actions">
+            <SettingItem
+              icon={<Plus size={20} />}
+              iconBg="bg-blue-100"
+              label="Add New Debt"
+              description="Add a credit card, loan, or personal debt"
+              onClick={() => { onClose(); onNavigate?.('add') }}
+            />
+          </SettingsSection>
 
           {/* Account Management */}
           <SettingsSection title="Account Management">
