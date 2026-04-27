@@ -80,7 +80,21 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
       if (!groups[d.type]) groups[d.type] = []
       groups[d.type].push(d)
     })
-    return groups
+    // Sort credit cards by available credit (highest first)
+    if (groups.credit_card) {
+      groups.credit_card.sort((a, b) => {
+        const availA = (a.creditLimit || 0) - (a.remaining || 0)
+        const availB = (b.creditLimit || 0) - (b.remaining || 0)
+        return availB - availA
+      })
+    }
+    // Order: credit_card → loan → personal
+    const order = ['credit_card', 'loan', 'personal']
+    const sorted = {}
+    order.forEach(type => {
+      if (groups[type]) sorted[type] = groups[type]
+    })
+    return sorted
   }, [debts])
 
   const animatedTotal = useCountUp(totals.total)
