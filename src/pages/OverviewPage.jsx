@@ -438,20 +438,6 @@ function SettingsSheet({ isOpen, onClose, onNavigate, user, recurring, accounts,
               description="Export as JSON or CSV"
               onClick={() => setActiveModal('export')}
             />
-            <SettingItem
-              icon={<Moon size={20} />}
-              iconBg="bg-pink-200"
-              label="Theme"
-              description="Light or dark mode"
-              onClick={() => setActiveModal('theme')}
-            />
-            <SettingItem
-              icon={<DollarSign size={20} />}
-              iconBg="bg-teal-200"
-              label="Base Currency"
-              description="Set your preferred currency"
-              onClick={() => setActiveModal('currency')}
-            />
           </SettingsSection>
         </div>
       </div>
