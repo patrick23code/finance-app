@@ -95,10 +95,9 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
       <div className="max-w-md mx-auto px-5 pt-14">
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <MonkeyLogo size={36} className="text-slate-900" />
-            <div className="flex flex-col gap-0.5">
-              <h1 className="text-base font-bold text-slate-900">MonkeyBoss</h1>
+          <div className="flex items-center gap-2">
+            <MonkeyLogo size={140} className="-ml-3 -my-6" />
+            <div className="flex flex-col gap-0.5 -ml-2">
               <p className="text-slate-500 text-xs font-medium">{dateLabel}</p>
             </div>
           </div>
