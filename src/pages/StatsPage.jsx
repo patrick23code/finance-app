@@ -141,7 +141,7 @@ export default function StatsPage() {
       <div className="max-w-md mx-auto px-5 pt-6 relative z-10">
         {/* Logo Header */}
         <div className="flex items-center justify-center mb-6">
-          <MonkeyLogo size={42} className="text-purple-200" />
+          <MonkeyLogo size={42} className="text-emerald-400" />
         </div>
 
         <p className="text-purple-300 text-sm mb-1">Financial overview</p>
