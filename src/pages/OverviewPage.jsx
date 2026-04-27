@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { ChevronRight, TrendingDown, Settings, Plus, Zap, Grid3X3, Repeat, Download, Moon, DollarSign, X, CreditCard, Landmark, Users } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCollection, addDocument, updateDocument, deleteDocument } from '../hooks/useFirestore'
@@ -368,7 +369,7 @@ function SettingsSheet({ isOpen, onClose, user, recurring, accounts, debts, tran
 
   if (!isOpen) return null
 
-  return (
+  return createPortal(
     <>
       <div className="fixed inset-0 bg-black/40 z-50 animate-fade-in" onClick={onClose} />
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-stone-50 rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
@@ -521,7 +522,8 @@ function SettingsSheet({ isOpen, onClose, user, recurring, accounts, debts, tran
           }}
         />
       )}
-    </>
+    </>,
+    document.body
   )
 }
 
