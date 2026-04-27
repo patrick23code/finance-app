@@ -105,10 +105,10 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
   const animatedExpenses = useCountUp(expenses, 700)
   const animatedBalance = useCountUp(totalBalance, 800)
 
-  if (loading) return <div className="flex items-center justify-center min-h-svh bg-white"><div className="text-slate-400">Loading...</div></div>
+  if (loading) return <div className="flex items-center justify-center min-h-svh bg-slate-50"><div className="text-slate-400">Loading...</div></div>
 
   return (
-    <div className="min-h-svh bg-white pb-24 relative">
+    <div className="min-h-svh bg-slate-50 pb-24 relative">
       <div className="max-w-md mx-auto px-4 pt-14">
         {selectedDay && (
           <p className="text-sm text-slate-500 mb-2">
@@ -301,7 +301,8 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
         <div className="max-w-md mx-auto px-4 flex justify-end">
           <button
             onClick={() => onNavigate('add-transaction')}
-            className="w-14 h-14 bg-cyan-400 text-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform pointer-events-auto"
+            className="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center active:scale-95 transition-transform pointer-events-auto"
+            style={{ boxShadow: '0 12px 28px -6px rgba(37, 99, 235, 0.5)' }}
           >
             <Plus size={26} />
           </button>

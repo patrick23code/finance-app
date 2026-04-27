@@ -79,7 +79,7 @@ export default function AddTransactionPage({ onNavigate }) {
   }
 
   return (
-    <div className="min-h-svh bg-white pb-24">
+    <div className="min-h-svh bg-slate-50 pb-24">
       <div className="max-w-md mx-auto px-4 pt-14">
 
         {/* Header */}

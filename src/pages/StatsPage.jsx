@@ -106,10 +106,10 @@ export default function StatsPage() {
   const animatedIncome = useCountUp(thisMonthIncome, 800)
   const animatedDaily = useCountUp(dailyAverage, 800)
 
-  if (dLoading || tLoading || aLoading) return <div className="flex items-center justify-center min-h-svh bg-white"><div className="text-slate-400">Loading...</div></div>
+  if (dLoading || tLoading || aLoading) return <div className="flex items-center justify-center min-h-svh bg-slate-50"><div className="text-slate-400">Loading...</div></div>
 
   return (
-    <div className="min-h-svh bg-white pb-24">
+    <div className="min-h-svh bg-slate-50 pb-24">
       <div className="max-w-md mx-auto px-4 pt-14">
         <p className="text-slate-500 text-sm mb-1">Financial overview</p>
         <h1 className="text-3xl font-bold text-slate-800 tracking-tight mb-6">Stats</h1>

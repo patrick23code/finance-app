@@ -18,13 +18,13 @@ export default function WealthPage({ onNavigate, onAccountClick }) {
   const totalWealth = accounts.reduce((s, a) => s + (a.balance || 0), 0)
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-svh bg-white">
+    <div className="flex items-center justify-center min-h-svh bg-slate-50">
       <div className="text-stone-400">Loading...</div>
     </div>
   )
 
   return (
-    <div className="min-h-svh bg-white pb-24">
+    <div className="min-h-svh bg-slate-50 pb-24">
       <div className="max-w-md mx-auto px-4 pt-14">
         <p className="text-stone-500 text-sm mb-1">Net worth</p>
         <h1 className="text-3xl font-bold text-stone-800 tracking-tight mb-6">Wealth</h1>

@@ -1,22 +1,29 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronRight, TrendingDown, Settings, Plus, Zap, Grid3X3, Repeat, Download, Moon, DollarSign, X } from 'lucide-react'
+import { ChevronRight, TrendingDown, Settings, Plus, Zap, Grid3X3, Repeat, Download, Moon, DollarSign, X, CreditCard, Landmark, Users } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCollection, addDocument, updateDocument, deleteDocument } from '../hooks/useFirestore'
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../constants/categories'
 import { useCountUp } from '../hooks/useCountUp'
 import BankLogo from '../components/BankLogo'
 import MonkeyLogo from '../components/MonkeyLogo'
+import DonutChart from '../components/DonutChart'
 
 const DEBT_COLORS = {
-  loan: 'bg-slate-500',
-  credit_card: 'bg-amber-400',
-  personal: 'bg-emerald-400',
+  loan: '#0F172A',
+  credit_card: '#F59E0B',
+  personal: '#10B981',
 }
 
 const DEBT_CARD_STYLES = {
-  credit_card: { bg: 'bg-amber-50', border: 'border-amber-400', icon: 'bg-amber-400' },
-  loan: { bg: 'bg-slate-50', border: 'border-slate-400', icon: 'bg-slate-400' },
-  personal: { bg: 'bg-emerald-50', border: 'border-emerald-400', icon: 'bg-emerald-400' },
+  credit_card: { iconBg: 'bg-amber-100', iconColor: 'text-amber-600', accent: '#F59E0B' },
+  loan: { iconBg: 'bg-slate-100', iconColor: 'text-slate-700', accent: '#0F172A' },
+  personal: { iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', accent: '#10B981' },
+}
+
+const DEBT_ICONS = {
+  loan: Landmark,
+  credit_card: CreditCard,
+  personal: Users,
 }
 
 const DEBT_LABELS = {
@@ -76,69 +83,85 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
 
   const animatedTotal = useCountUp(totals.total)
 
-  if (loading) return <div className="flex items-center justify-center min-h-svh bg-white"><div className="text-slate-400">Loading...</div></div>
+  if (loading) return <div className="flex items-center justify-center min-h-svh bg-slate-50"><div className="text-slate-400">Loading...</div></div>
+
+  const donutSegments = Object.entries(totals.byType)
+    .filter(([_, val]) => val > 0)
+    .map(([type, val]) => ({ name: DEBT_LABELS[type], value: val, color: DEBT_COLORS[type] }))
 
   return (
-    <div className="min-h-svh bg-white pb-24">
-      <div className="max-w-md mx-auto px-4 pt-14">
+    <div className="min-h-svh bg-slate-50 pb-24">
+      <div className="max-w-md mx-auto px-5 pt-14">
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div className="flex items-center gap-3">
             <MonkeyLogo size={32} />
             <div className="flex flex-col gap-0.5">
-              <h1 className="text-base font-bold text-slate-800">MonkeyBoss</h1>
-              <p className="text-slate-400 text-xs">{dateLabel}</p>
+              <h1 className="text-base font-bold text-slate-900">MonkeyBoss</h1>
+              <p className="text-slate-500 text-xs font-medium">{dateLabel}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setShowSettings(true)} className="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center">
-              <Settings size={20} className="text-slate-600" />
+            <button onClick={() => setShowSettings(true)} className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center shadow-sm border border-slate-100 active:scale-95 transition-transform">
+              <Settings size={18} className="text-slate-700" />
             </button>
-            <button onClick={() => onNavigate('add')} className="w-9 h-9 rounded-full bg-cyan-400 flex items-center justify-center shadow-sm">
-              <Plus size={20} className="text-white" />
+            <button onClick={() => onNavigate('add')} className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center active:scale-95 transition-transform" style={{ boxShadow: '0 8px 20px -4px rgba(37, 99, 235, 0.45)' }}>
+              <Plus size={20} className="text-white" strokeWidth={2.5} />
             </button>
-            <button onClick={logout} className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden">
-              <img src={user?.photoURL} alt="" className="w-9 h-9 rounded-full object-cover" onError={e => e.target.style.display='none'} />
+            <button onClick={logout} className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center overflow-hidden active:scale-95 transition-transform">
+              <img src={user?.photoURL} alt="" className="w-10 h-10 rounded-2xl object-cover" onError={e => e.target.style.display='none'} />
             </button>
           </div>
         </div>
 
-        {/* Total Debts Card */}
-        <div className="bg-cyan-50 rounded-2xl p-5 mb-6 shadow-sm animate-scale-in border-l-4 border-cyan-400">
-          <p className="text-cyan-700 text-xs font-semibold tracking-wide uppercase mb-1">Total debts</p>
-          <p className="text-4xl font-bold text-slate-800 tracking-tight mb-3">{fmt(animatedTotal)}</p>
+        {/* Hero Total Debts Card */}
+        <div className="bg-white rounded-2xl p-6 mb-6 animate-scale-in border border-slate-100" style={{ boxShadow: '0 20px 40px -12px rgba(15, 23, 42, 0.08)' }}>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-slate-500 text-[11px] font-semibold tracking-wide uppercase mb-1">Total debt</p>
+              <p className="text-[40px] font-bold text-slate-900 tracking-tight leading-none mb-2">{fmt(animatedTotal)}</p>
+              <p className="text-xs text-slate-500 font-medium">Across {debts.length} debt{debts.length !== 1 ? 's' : ''}</p>
+            </div>
+            {donutSegments.length > 0 && (
+              <DonutChart
+                segments={donutSegments}
+                size={96}
+                strokeWidth={11}
+              />
+            )}
+          </div>
 
           {totals.total > 0 && (
-            <div className="w-full h-2 rounded-full overflow-hidden flex mb-2 bg-white">
+            <div className="mt-5 pt-4 border-t border-slate-100 grid grid-cols-3 gap-3">
               {Object.entries(totals.byType).map(([type, val]) => {
-                const pct = totals.total ? (val / totals.total) * 100 : 0
-                return pct > 0 ? (
-                  <div key={type} className={`${DEBT_COLORS[type]} h-full`} style={{ width: `${pct}%` }} />
-                ) : null
+                if (val === 0) return null
+                const pct = totals.total ? Math.round((val / totals.total) * 100) : 0
+                return (
+                  <div key={type}>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: DEBT_COLORS[type] }} />
+                      <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">{DEBT_LABELS[type]}</p>
+                    </div>
+                    <p className="text-sm font-bold text-slate-900">{fmtShort(val)}</p>
+                    <p className="text-[10px] text-slate-500 font-medium">{pct}%</p>
+                  </div>
+                )
               })}
             </div>
           )}
-
-          <div className="flex gap-4 text-xs text-slate-600 font-medium">
-            {Object.entries(totals.byType).map(([type, val]) =>
-              val > 0 ? (
-                <span key={type}>{DEBT_LABELS[type]} {fmtShort(val)}</span>
-              ) : null
-            )}
-          </div>
         </div>
 
         {/* Debt Groups */}
         {Object.entries(byType).map(([type, items], idx) => (
-          <div key={type} className="mb-4 animate-fade-in-up" style={{ animationDelay: `${idx * 60}ms` }}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-bold text-slate-700 tracking-tight">
-                {DEBT_LABELS[type]} <span className="text-slate-400 font-medium">({items.length})</span>
+          <div key={type} className="mb-5 animate-fade-in-up" style={{ animationDelay: `${idx * 60}ms` }}>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-bold text-slate-900 tracking-tight">
+                {DEBT_LABELS[type]} <span className="text-slate-400 font-medium ml-0.5">{items.length}</span>
               </span>
-              <span className="text-xs text-slate-500 font-medium">{fmt(items.reduce((s, d) => s + (d.remaining || 0), 0))}</span>
+              <span className="text-xs text-slate-500 font-semibold">{fmt(items.reduce((s, d) => s + (d.remaining || 0), 0))}</span>
             </div>
             {type === 'personal' ? (
-              <div className="bg-emerald-50 rounded-2xl overflow-hidden shadow-sm border-l-4 border-emerald-400">
+              <div className="bg-white rounded-2xl overflow-hidden border border-slate-100" style={{ boxShadow: '0 4px 12px -4px rgba(15, 23, 42, 0.04)' }}>
                 {items.map((d, i) => (
                   <PersonalDebtRow key={d.id} debt={d} last={i === items.length - 1} onClick={() => onDebtClick(d)} />
                 ))}
@@ -156,11 +179,12 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
         {debts.length === 0 && (
           <div className="text-center py-16">
             <TrendingDown size={40} className="text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500 font-medium">No debts added yet</p>
-            <p className="text-slate-400 text-sm mt-1">Tap Add to get started</p>
+            <p className="text-slate-700 font-semibold">No debts added yet</p>
+            <p className="text-slate-500 text-sm mt-1">Tap Add to get started</p>
             <button
               onClick={() => onNavigate('add')}
-              className="mt-4 bg-cyan-400 text-white px-6 py-3 rounded-2xl text-sm font-semibold shadow-sm"
+              className="mt-4 bg-blue-600 text-white px-6 py-3 rounded-2xl text-sm font-semibold"
+              style={{ boxShadow: '0 8px 20px -4px rgba(37, 99, 235, 0.45)' }}
             >
               Add your first debt
             </button>
@@ -195,23 +219,22 @@ function avatarColor(name) {
 
 function PersonalDebtRow({ debt, last, onClick }) {
   const isOwesYou = debt.direction === 'they_owe'
-  const initial = (debt.person || debt.name || '?')[0].toUpperCase()
   const since = debt.since ? new Date(debt.since + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: '2-digit' }) : null
 
   return (
     <>
-      <div className="flex items-center gap-3 px-4 py-3" onClick={onClick}>
-        <div className={`w-10 h-10 rounded-full ${avatarColor(debt.person || debt.name)} flex items-center justify-center flex-shrink-0`}>
-          <span className="text-white font-bold text-sm">{initial}</span>
+      <div className="flex items-center gap-3 px-4 py-3.5 active:bg-slate-50 transition-colors cursor-pointer" onClick={onClick}>
+        <div className="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
+          <Users size={18} className="text-emerald-600" strokeWidth={2} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-slate-800 text-[15px]">{debt.person || debt.name}</p>
-          <p className="text-xs text-slate-500 truncate">
+          <p className="font-bold text-slate-900 text-[15px]">{debt.person || debt.name}</p>
+          <p className="text-xs text-slate-500 truncate font-medium">
             {debt.for && `${debt.for}`}{since && ` · since ${since}`}
           </p>
         </div>
         <div className="text-right flex-shrink-0">
-          <p className={`font-bold text-[15px] ${isOwesYou ? 'text-emerald-600' : 'text-slate-800'}`}>
+          <p className={`font-bold text-[15px] tracking-tight ${isOwesYou ? 'text-emerald-600' : 'text-slate-900'}`}>
             {isOwesYou ? '+' : ''}{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(debt.remaining)}
           </p>
           <p className={`text-[10px] font-bold tracking-wide ${isOwesYou ? 'text-emerald-500' : 'text-slate-500'}`}>
@@ -219,7 +242,7 @@ function PersonalDebtRow({ debt, last, onClick }) {
           </p>
         </div>
       </div>
-      {!last && <div className="h-px bg-emerald-200/40 mx-4" />}
+      {!last && <div className="h-px bg-slate-100 mx-4" />}
     </>
   )
 }
@@ -240,58 +263,49 @@ function DebtCard({ debt, color, onClick }) {
   }, [pct])
 
   const styles = DEBT_CARD_STYLES[debt.type] || DEBT_CARD_STYLES.loan
+  const Icon = DEBT_ICONS[debt.type] || Landmark
 
   return (
-    <div className={`${styles.bg} rounded-2xl p-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer border-l-4 ${styles.border}`} onClick={onClick}>
-      <div className="flex items-start justify-between mb-1">
+    <div
+      className="bg-white rounded-2xl p-4 active:scale-[0.98] transition-transform cursor-pointer border border-slate-100"
+      style={{ boxShadow: '0 4px 12px -4px rgba(15, 23, 42, 0.04)' }}
+      onClick={onClick}
+    >
+      <div className="flex items-start gap-3 mb-3">
+        <div className={`w-11 h-11 rounded-2xl ${styles.iconBg} flex items-center justify-center flex-shrink-0`}>
+          <Icon size={20} className={styles.iconColor} strokeWidth={2} />
+        </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <BankLogo bankId={debt.issuerId} bankName={debt.bank} size={20} />
-            {debt.bank && <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">{debt.bank}</p>}
-          </div>
-          <p className="font-bold text-slate-800">
+          {debt.bank && <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-0.5">{debt.bank}</p>}
+          <p className="font-bold text-slate-900 text-[15px] tracking-tight">
             {debt.name}
-            {debt.last4 && <span className="text-slate-400 font-normal"> ·{debt.last4}</span>}
+            {debt.last4 && <span className="text-slate-400 font-medium"> ·{debt.last4}</span>}
           </p>
         </div>
-        <div className="text-right">
-          <p className="font-bold text-slate-800 text-lg">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(debt.remaining)}</p>
+        <div className="text-right flex-shrink-0">
+          <p className="font-bold text-slate-900 text-lg tracking-tight">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(debt.remaining)}</p>
           {isCC && debt.creditLimit && (
-            <p className="text-[10px] text-slate-500">of {debt.creditLimit >= 1000 ? `$${(debt.creditLimit/1000).toFixed(0)}k` : `$${debt.creditLimit}`}</p>
+            <p className="text-[10px] text-slate-500 font-medium">of {debt.creditLimit >= 1000 ? `$${(debt.creditLimit/1000).toFixed(0)}k` : `$${debt.creditLimit}`}</p>
           )}
-          {!isCC && <p className="text-[10px] text-slate-500">remaining</p>}
+          {!isCC && <p className="text-[10px] text-slate-500 font-medium">remaining</p>}
         </div>
       </div>
 
-      {/* Progress bar */}
-      {isCC ? (
-        <div className="flex gap-0.5 mt-3 mb-2">
-          {Array.from({ length: segments }).map((_, i) => {
-            const filled = i < Math.round((barPct / 100) * segments)
-            const barColor = pct >= 85 ? '#ef4444' : pct >= 65 ? '#f97316' : pct >= 40 ? '#f59e0b' : '#22c55e'
-            return (
-              <div
-                key={i}
-                className="flex-1 h-1.5 rounded-sm transition-colors duration-700"
-                style={{ backgroundColor: filled ? barColor : '#e7e5e4', transitionDelay: `${i * 20}ms` }}
-              />
-            )
-          })}
-        </div>
-      ) : (
-        <div className="w-full h-1.5 bg-white/60 rounded-full mt-3 mb-2">
-          <div
-            className="h-full rounded-full"
-            style={{
-              width: `${barPct}%`,
-              backgroundColor: pct >= 80 ? '#ef4444' : pct >= 50 ? '#f59e0b' : '#22c55e',
-              transition: 'width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            }}
-          />
-        </div>
-      )}
+      {/* Sleek thin progress bar */}
+      <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div
+          className="h-full rounded-full"
+          style={{
+            width: `${barPct}%`,
+            backgroundColor: isCC
+              ? (pct >= 85 ? '#EF4444' : pct >= 65 ? '#F59E0B' : '#10B981')
+              : (pct >= 80 ? '#10B981' : pct >= 50 ? '#3B82F6' : '#0F172A'),
+            transition: 'width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          }}
+        />
+      </div>
 
-      <div className="flex justify-between text-xs text-slate-500 font-medium">
+      <div className="flex justify-between text-[11px] text-slate-500 font-medium mt-2">
         <span>
           {isCC && available !== null
             ? `${Math.round(pct)}% used · $${available.toLocaleString()} available`

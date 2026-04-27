@@ -4,7 +4,7 @@ export default function LoginPage() {
   const { login } = useAuth()
 
   return (
-    <div className="min-h-svh bg-white flex flex-col items-center justify-center px-6">
+    <div className="min-h-svh bg-slate-50 flex flex-col items-center justify-center px-6">
       <div className="w-full max-w-sm text-center">
         <div className="mb-10">
           <div className="w-16 h-16 bg-stone-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
