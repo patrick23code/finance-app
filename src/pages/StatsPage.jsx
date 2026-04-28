@@ -15,6 +15,15 @@ const DEBT_COLORS = {
   personal: '#fda4af',
 }
 
+const BG_GRADIENT = 'linear-gradient(135deg, #3b0764 0%, #6d28d9 50%, #4c1d95 100%)'
+
+const glassCard = (borderRgba, accentHex) => ({
+  background: 'rgba(255,255,255,0.08)',
+  backdropFilter: 'blur(12px)',
+  border: `1px solid ${borderRgba}`,
+  borderLeft: `4px solid ${accentHex}`,
+})
+
 function fmt(n) {
   if (Math.abs(n) >= 1000) return `$${(n / 1000).toFixed(1)}k`
   return `$${n.toLocaleString()}`
@@ -107,32 +116,50 @@ export default function StatsPage() {
   const animatedIncome = useCountUp(thisMonthIncome, 800)
   const animatedDaily = useCountUp(dailyAverage, 800)
 
-  if (dLoading || tLoading || aLoading) return <div className="flex items-center justify-center min-h-svh bg-slate-50"><div className="text-slate-400">Loading...</div></div>
+  if (dLoading || tLoading || aLoading) return <div className="flex items-center justify-center min-h-svh" style={{ background: BG_GRADIENT }}><div className="text-purple-200">Loading...</div></div>
 
   return (
-    <div className="min-h-svh bg-slate-50 pb-24">
-      <div className="max-w-md mx-auto px-5 pt-6">
+    <div className="min-h-svh pb-24 relative overflow-hidden" style={{ background: BG_GRADIENT }}>
+      {/* Decorative stats symbols background */}
+      <div className="absolute inset-0 pointer-events-none select-none overflow-hidden" aria-hidden="true">
+        <span className="absolute text-6xl opacity-5 top-6 left-4">📊</span>
+        <span className="absolute text-5xl opacity-5 top-12 right-8">📈</span>
+        <span className="absolute text-7xl opacity-5 top-28 left-1/2 -translate-x-1/2">💰</span>
+        <span className="absolute text-5xl opacity-5 top-48 right-4">%</span>
+        <span className="absolute text-6xl opacity-5 top-56 left-6">$</span>
+        <span className="absolute text-5xl opacity-5 top-80 right-12">📉</span>
+        <span className="absolute text-6xl opacity-5 top-96 left-1/3">💹</span>
+        <span className="absolute text-5xl opacity-5" style={{ top: '480px', right: '24px' }}>🏦</span>
+        <span className="absolute text-7xl opacity-5" style={{ top: '560px', left: '12px' }}>📊</span>
+        <span className="absolute text-5xl opacity-5" style={{ top: '640px', right: '40px' }}>📈</span>
+        <span className="absolute text-6xl opacity-5" style={{ top: '720px', left: '50%' }}>💎</span>
+        <span className="absolute text-5xl opacity-5" style={{ top: '800px', left: '20px' }}>%</span>
+        <span className="absolute text-6xl opacity-5" style={{ top: '880px', right: '16px' }}>$</span>
+        <span className="absolute text-5xl opacity-5" style={{ top: '960px', left: '30%' }}>💹</span>
+      </div>
+
+      <div className="max-w-md mx-auto px-5 pt-6 relative z-10">
         {/* Logo Header */}
         <div className="flex items-center justify-center mb-6">
-          <MonkeyLogo size={42} className="text-slate-900" />
+          <MonkeyLogo size={42} className="text-emerald-400" />
         </div>
 
-        <p className="text-slate-500 text-sm mb-1">Financial overview</p>
-        <h1 className="text-3xl font-bold text-slate-800 tracking-tight mb-6">Stats</h1>
+        <p className="text-purple-300 text-sm mb-1">Financial overview</p>
+        <h1 className="text-3xl font-bold text-white tracking-tight mb-6">Stats</h1>
 
         {/* Net Worth Card */}
-        <div className="bg-slate-800 rounded-2xl p-5 mb-4 shadow-sm animate-scale-in border-l-4 border-cyan-400">
-          <p className="text-stone-400 text-xs font-medium uppercase tracking-wide mb-3">Net worth</p>
+        <div className="rounded-2xl p-5 mb-4 shadow-lg animate-scale-in" style={glassCard('rgba(255,255,255,0.15)', '#22d3ee')}>
+          <p className="text-purple-300 text-xs font-medium uppercase tracking-wide mb-3">Net worth</p>
           <p className={`text-4xl font-bold tracking-tight mb-4 ${netWorth >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
             {netWorth >= 0 ? '+' : ''}{fmtFull(animatedNetWorth)}
           </p>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <p className="text-stone-400 text-xs mb-1">Assets</p>
+              <p className="text-purple-300 text-xs mb-1">Assets</p>
               <p className="font-semibold text-white">{fmtFull(animatedAssets)}</p>
             </div>
             <div>
-              <p className="text-stone-400 text-xs mb-1">Debts</p>
+              <p className="text-purple-300 text-xs mb-1">Debts</p>
               <p className="font-semibold text-white">-{fmtFull(animatedDebt)}</p>
             </div>
           </div>
@@ -140,17 +167,17 @@ export default function StatsPage() {
 
         {/* Income vs Expense */}
         <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="bg-emerald-50 rounded-2xl p-4 shadow-sm animate-scale-in border-l-4 border-emerald-400" style={{ animationDelay: '40ms' }}>
-            <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide mb-2">Income</p>
-            <p className="text-2xl font-bold text-emerald-600 mb-2">{fmtFull(animatedIncome)}</p>
-            <div className="w-full h-1 bg-white rounded-full overflow-hidden">
-              <div className="h-full bg-emerald-500" style={{ width: '100%' }} />
+          <div className="rounded-2xl p-4 shadow-lg animate-scale-in" style={{ ...glassCard('rgba(52,211,153,0.3)', '#34d399'), animationDelay: '40ms' }}>
+            <p className="text-[10px] font-bold text-emerald-300 uppercase tracking-wide mb-2">Income</p>
+            <p className="text-2xl font-bold text-emerald-300 mb-2">{fmtFull(animatedIncome)}</p>
+            <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
+              <div className="h-full bg-emerald-400" style={{ width: '100%' }} />
             </div>
           </div>
-          <div className="bg-red-50 rounded-2xl p-4 shadow-sm animate-scale-in border-l-4 border-red-400" style={{ animationDelay: '80ms' }}>
-            <p className="text-[10px] font-bold text-red-700 uppercase tracking-wide mb-2">Expense</p>
-            <p className="text-2xl font-bold text-red-500 mb-2">{fmtFull(animatedMonthly)}</p>
-            <div className="w-full h-1 bg-white rounded-full overflow-hidden">
+          <div className="rounded-2xl p-4 shadow-lg animate-scale-in" style={{ ...glassCard('rgba(248,113,113,0.3)', '#f87171'), animationDelay: '80ms' }}>
+            <p className="text-[10px] font-bold text-red-300 uppercase tracking-wide mb-2">Expense</p>
+            <p className="text-2xl font-bold text-red-300 mb-2">{fmtFull(animatedMonthly)}</p>
+            <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
               <div className="h-full bg-red-400" style={{ width: thisMonthIncome > 0 ? `${Math.min(100, (thisMonthExpenses / thisMonthIncome) * 100)}%` : '0%' }} />
             </div>
           </div>
@@ -158,24 +185,24 @@ export default function StatsPage() {
 
         {/* Savings & Velocity */}
         <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="bg-cyan-50 rounded-2xl p-4 shadow-sm animate-scale-in border-l-4 border-cyan-400" style={{ animationDelay: '120ms' }}>
-            <p className="text-[10px] font-bold text-cyan-700 uppercase tracking-wide mb-2">Savings Rate</p>
-            <p className={`text-2xl font-bold mb-2 ${savingsRate >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+          <div className="rounded-2xl p-4 shadow-lg animate-scale-in" style={{ ...glassCard('rgba(34,211,238,0.3)', '#22d3ee'), animationDelay: '120ms' }}>
+            <p className="text-[10px] font-bold text-cyan-300 uppercase tracking-wide mb-2">Savings Rate</p>
+            <p className={`text-2xl font-bold mb-2 ${savingsRate >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
               {savingsRate >= 0 ? '+' : ''}{savingsRate}%
             </p>
-            <p className="text-xs text-slate-600 font-medium">{fmtFull(thisMonthIncome - thisMonthExpenses)}</p>
+            <p className="text-xs text-purple-200 font-medium">{fmtFull(thisMonthIncome - thisMonthExpenses)}</p>
           </div>
-          <div className="bg-amber-50 rounded-2xl p-4 shadow-sm animate-scale-in border-l-4 border-amber-400" style={{ animationDelay: '160ms' }}>
-            <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wide mb-2">Daily Average</p>
-            <p className="text-2xl font-bold text-slate-800 mb-2">{fmtFull(animatedDaily)}</p>
-            <p className="text-xs text-slate-600 font-medium">{daysLeftInMonth} days left</p>
+          <div className="rounded-2xl p-4 shadow-lg animate-scale-in" style={{ ...glassCard('rgba(251,191,36,0.3)', '#fbbf24'), animationDelay: '160ms' }}>
+            <p className="text-[10px] font-bold text-amber-300 uppercase tracking-wide mb-2">Daily Average</p>
+            <p className="text-2xl font-bold text-white mb-2">{fmtFull(animatedDaily)}</p>
+            <p className="text-xs text-purple-200 font-medium">{daysLeftInMonth} days left</p>
           </div>
         </div>
 
         {/* Monthly Spending Trend */}
-        <div className="bg-pink-50 rounded-2xl p-5 mb-4 shadow-sm animate-scale-in border-l-4 border-pink-400" style={{ animationDelay: '200ms' }}>
-          <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Monthly spending trend</p>
-          <p className="text-2xl font-bold text-stone-800 tracking-tight mb-4">{fmtFull(animatedMonthly)}</p>
+        <div className="rounded-2xl p-5 mb-4 shadow-lg animate-scale-in" style={{ ...glassCard('rgba(244,114,182,0.3)', '#f472b6'), animationDelay: '200ms' }}>
+          <p className="text-[10px] font-semibold text-pink-300 uppercase tracking-wide mb-3">Monthly spending trend</p>
+          <p className="text-2xl font-bold text-white tracking-tight mb-4">{fmtFull(animatedMonthly)}</p>
           <ResponsiveContainer width="100%" height={100}>
             <AreaChart data={monthlyTrend} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
               <defs>
@@ -184,7 +211,7 @@ export default function StatsPage() {
                   <stop offset="95%" stopColor="#f87171" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#a8a29e' }} axisLine={false} tickLine={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#c4b5fd' }} axisLine={false} tickLine={false} />
               <YAxis hide />
               <Tooltip
                 formatter={v => [fmtFull(v), 'Spending']}
@@ -197,8 +224,8 @@ export default function StatsPage() {
 
         {/* Category Breakdown */}
         {categoryBreakdown.length > 0 && (
-          <div className="bg-purple-50 rounded-2xl p-5 mb-4 shadow-sm animate-scale-in border-l-4 border-purple-400" style={{ animationDelay: '240ms' }}>
-            <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Spending by category</p>
+          <div className="rounded-2xl p-5 mb-4 shadow-lg animate-scale-in" style={{ ...glassCard('rgba(167,139,250,0.3)', '#a78bfa'), animationDelay: '240ms' }}>
+            <p className="text-[10px] font-semibold text-purple-300 uppercase tracking-wide mb-3">Spending by category</p>
             <div className="flex flex-col gap-2">
               {categoryBreakdown.map((item, idx) => {
                 const pct = thisMonthExpenses ? Math.round((item.total / thisMonthExpenses) * 100) : 0
@@ -231,13 +258,13 @@ export default function StatsPage() {
 
         {/* Top Transactions */}
         {topTransactions.length > 0 && (
-          <div className="bg-blue-50 rounded-2xl p-5 mb-4 shadow-sm animate-scale-in border-l-4 border-blue-400" style={{ animationDelay: '280ms' }}>
-            <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Top transactions this month</p>
+          <div className="rounded-2xl p-5 mb-4 shadow-lg animate-scale-in" style={{ ...glassCard('rgba(96,165,250,0.3)', '#60a5fa'), animationDelay: '280ms' }}>
+            <p className="text-[10px] font-semibold text-blue-300 uppercase tracking-wide mb-3">Top transactions this month</p>
             <div className="flex flex-col gap-2">
               {topTransactions.map((t, i) => (
-                <div key={t.id} className="flex items-center justify-between py-2 border-b border-stone-100 last:border-0">
-                  <span className="text-sm text-stone-700">{t.name}</span>
-                  <span className="font-semibold text-stone-800">{fmtFull(t.amount)}</span>
+                <div key={t.id} className="flex items-center justify-between py-2 border-b border-white/10 last:border-0">
+                  <span className="text-sm text-purple-100">{t.name}</span>
+                  <span className="font-semibold text-white">{fmtFull(t.amount)}</span>
                 </div>
               ))}
             </div>
@@ -246,18 +273,18 @@ export default function StatsPage() {
 
         {/* Debt Breakdown */}
         {debtBreakdown.length > 0 && (
-          <div className="bg-amber-50 rounded-2xl p-5 shadow-sm animate-scale-in border-l-4 border-amber-400" style={{ animationDelay: '320ms' }}>
-            <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-4">Debt breakdown</p>
+          <div className="rounded-2xl p-5 shadow-lg animate-scale-in" style={{ ...glassCard('rgba(251,191,36,0.3)', '#fbbf24'), animationDelay: '320ms' }}>
+            <p className="text-[10px] font-semibold text-amber-300 uppercase tracking-wide mb-4">Debt breakdown</p>
             <div className="flex flex-col gap-4">
               {debtBreakdown.map(b => {
                 const pct = totalDebt ? Math.round((b.total / totalDebt) * 100) : 0
                 return (
                   <div key={b.label}>
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-sm font-semibold text-stone-700">{b.label}</span>
-                      <span className="text-sm text-stone-500">{fmtFull(b.total)} · {pct}%</span>
+                      <span className="text-sm font-semibold text-purple-100">{b.label}</span>
+                      <span className="text-sm text-purple-300">{fmtFull(b.total)} · {pct}%</span>
                     </div>
-                    <div className="w-full h-1.5 bg-stone-100 rounded-full">
+                    <div className="w-full h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.1)' }}>
                       <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: b.color }} />
                     </div>
                   </div>
@@ -283,11 +310,11 @@ function AnimatedBar({ pct, barColor, emoji, label, value, delay = 0 }) {
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-2">
           <span className="text-base">{emoji}</span>
-          <span className="text-sm font-medium text-stone-700 capitalize">{label}</span>
+          <span className="text-sm font-medium text-purple-100 capitalize">{label}</span>
         </div>
-        <span className="text-sm text-stone-500">{value} <span className="text-stone-400">({pct}%)</span></span>
+        <span className="text-sm text-purple-300">{value} <span className="text-purple-400">({pct}%)</span></span>
       </div>
-      <div className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden">
+      <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
         <div
           className="h-full rounded-full"
           style={{

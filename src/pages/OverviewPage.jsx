@@ -113,7 +113,7 @@ export default function OverviewPage({ onNavigate, onDebtClick }) {
           <button onClick={() => setShowSettings(true)} className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-2xl bg-white flex items-center justify-center shadow-sm border border-slate-100 active:scale-95 transition-transform">
             <Settings size={18} className="text-slate-700" />
           </button>
-          <MonkeyLogo size={42} className="text-slate-900" />
+          <MonkeyLogo size={42} className="text-emerald-400" />
           <button onClick={logout} className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center overflow-hidden active:scale-95 transition-transform">
             <img src={user?.photoURL} alt="" className="w-10 h-10 rounded-2xl object-cover" onError={e => e.target.style.display='none'} />
           </button>

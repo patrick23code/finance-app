@@ -114,7 +114,7 @@ export default function ActivityPage({ onNavigate, onEditTransaction }) {
       <div className="max-w-md mx-auto px-5 pt-6">
         {/* Logo Header */}
         <div className="flex items-center justify-center mb-6">
-          <MonkeyLogo size={42} className="text-slate-900" />
+          <MonkeyLogo size={42} className="text-emerald-400" />
         </div>
 
         {selectedDay && (

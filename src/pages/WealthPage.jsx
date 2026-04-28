@@ -44,7 +44,7 @@ export default function WealthPage({ onNavigate, onAccountClick }) {
       <div className="max-w-md mx-auto px-5 pt-6">
         {/* Header with Logo */}
         <div className="flex items-center justify-center mb-6">
-          <MonkeyLogo size={42} className="text-slate-900" />
+          <MonkeyLogo size={42} className="text-emerald-400" />
         </div>
 
         <p className="text-slate-500 text-sm mb-1 font-medium">Net worth</p>
