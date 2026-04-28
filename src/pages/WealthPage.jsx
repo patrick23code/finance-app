@@ -5,7 +5,20 @@ import { useCollection, updateDocument, deleteDocument } from '../hooks/useFires
 import MonkeyLogo from '../components/MonkeyLogo'
 
 const ACCOUNT_ICONS = { checking: '🏦', savings: '💰', cash: '💵' }
-const ACCOUNT_COLORS = { checking: 'bg-blue-100', savings: 'bg-emerald-100', cash: 'bg-yellow-100' }
+
+const CARD_COLORS = [
+  { id: 'navy', label: 'Navy', gradient: 'linear-gradient(135deg, #1e3a8a 0%, #1e293b 100%)' },
+  { id: 'black', label: 'Black', gradient: 'linear-gradient(135deg, #1f2937 0%, #000000 100%)' },
+  { id: 'emerald', label: 'Emerald', gradient: 'linear-gradient(135deg, #059669 0%, #064e3b 100%)' },
+  { id: 'rose', label: 'Rose', gradient: 'linear-gradient(135deg, #e11d48 0%, #881337 100%)' },
+  { id: 'purple', label: 'Purple', gradient: 'linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)' },
+  { id: 'amber', label: 'Amber', gradient: 'linear-gradient(135deg, #f59e0b 0%, #b45309 100%)' },
+  { id: 'sky', label: 'Sky', gradient: 'linear-gradient(135deg, #0ea5e9 0%, #075985 100%)' },
+  { id: 'slate', label: 'Slate', gradient: 'linear-gradient(135deg, #64748b 0%, #1e293b 100%)' },
+  { id: 'rainbow', label: 'Rainbow', gradient: 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 50%, #3b82f6 100%)' },
+]
+
+const COLOR_MAP = Object.fromEntries(CARD_COLORS.map(c => [c.id, c.gradient]))
 
 const DOLLAR_PATTERN = `data:image/svg+xml;utf8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
@@ -72,42 +85,66 @@ export default function WealthPage({ onNavigate, onAccountClick }) {
         {/* Accounts list */}
         {accounts.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-stone-400 font-medium">No accounts yet</p>
-            <p className="text-stone-400 text-sm mt-1">Add an account from the Add tab</p>
+            <p className="text-slate-400 font-medium">No accounts yet</p>
+            <p className="text-slate-400 text-sm mt-1">Add an account from the Add tab</p>
             <button
               onClick={() => onNavigate('add')}
-              className="mt-4 bg-stone-800 text-white px-6 py-3 rounded-2xl text-sm font-semibold"
+              className="mt-4 bg-blue-600 text-white px-6 py-3 rounded-2xl text-sm font-semibold"
+              style={{ boxShadow: '0 8px 20px -4px rgba(37, 99, 235, 0.45)' }}
             >
               Add account
             </button>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
-            {accounts.map(a => (
-              <div key={a.id} className="bg-white rounded-2xl p-4 shadow-sm">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className={`w-11 h-11 rounded-full ${ACCOUNT_COLORS[a.type] || 'bg-stone-100'} flex items-center justify-center text-xl flex-shrink-0`}>
-                    {ACCOUNT_ICONS[a.type] || '🏦'}
+          <div className="flex flex-col gap-4">
+            {accounts.map((a, idx) => {
+              const gradient = COLOR_MAP[a.color] || COLOR_MAP.navy
+              return (
+                <div
+                  key={a.id}
+                  onClick={() => onAccountClick(a)}
+                  className="rounded-2xl p-5 cursor-pointer active:scale-[0.98] transition-transform animate-scale-in relative overflow-hidden"
+                  style={{
+                    background: gradient,
+                    aspectRatio: '1.586 / 1',
+                    boxShadow: '0 12px 32px -8px rgba(0,0,0,0.3)',
+                    animationDelay: `${idx * 60}ms`,
+                  }}
+                >
+                  {/* Decorative chip */}
+                  <div className="absolute top-5 right-5 w-10 h-7 rounded-md bg-white/20 border border-white/30" />
+                  {/* Decorative shine */}
+                  <div className="absolute -top-12 -left-12 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
+
+                  <div className="relative flex flex-col h-full justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-2xl">{ACCOUNT_ICONS[a.type] || '🏦'}</span>
+                        {a.bank && <p className="text-[10px] font-bold text-white/80 uppercase tracking-widest">{a.bank}</p>}
+                      </div>
+                      <p className="text-white text-lg font-bold tracking-tight">{a.name}</p>
+                    </div>
+
+                    {a.last4 && (
+                      <p className="text-white/90 text-base font-mono tracking-[0.3em] my-2">•••• •••• •••• {a.last4}</p>
+                    )}
+
+                    <div className="flex items-end justify-between">
+                      <div>
+                        <p className="text-[10px] font-semibold text-white/60 uppercase tracking-widest mb-0.5">Balance</p>
+                        <p className="text-2xl font-bold text-white tracking-tight">{fmt(a.balance)}</p>
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setEditItem(a) }}
+                        className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center active:scale-90 transition-transform"
+                      >
+                        <Edit2 size={16} className="text-white" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    {a.bank && <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide">{a.bank}</p>}
-                    <p className="font-semibold text-stone-800">{a.name}</p>
-                    <p className="text-xs text-stone-400 capitalize">{a.type}</p>
-                  </div>
-                  <p className="font-bold text-xl text-stone-800">{fmt(a.balance)}</p>
                 </div>
-                <div className="flex gap-2">
-                  <button onClick={() => onAccountClick(a)}
-                    className="flex-1 py-2 rounded-xl bg-stone-100 text-stone-600 text-sm font-semibold active:scale-95 transition-transform">
-                    View transactions
-                  </button>
-                  <button onClick={() => setEditItem(a)}
-                    className="px-3 py-2 rounded-xl bg-stone-100 text-stone-600 active:scale-95 transition-transform">
-                    <Edit2 size={16} />
-                  </button>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
 
@@ -127,6 +164,8 @@ function AccountEditSheet({ account, onClose, userId }) {
   const [name, setName] = useState(account.name)
   const [bank, setBank] = useState(account.bank || '')
   const [balance, setBalance] = useState(String(account.balance || 0))
+  const [last4, setLast4] = useState(account.last4 || '')
+  const [color, setColor] = useState(account.color || 'navy')
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
@@ -138,6 +177,8 @@ function AccountEditSheet({ account, onClose, userId }) {
         name,
         bank: bank || null,
         balance: parseFloat(balance) || 0,
+        last4: last4 || null,
+        color,
       })
       onClose()
     } finally {
@@ -193,6 +234,29 @@ function AccountEditSheet({ account, onClose, userId }) {
                 <input type="number" inputMode="decimal" placeholder="0.00"
                   value={balance} onChange={e => setBalance(e.target.value)}
                   className="flex-1 text-2xl font-bold text-stone-800 bg-transparent outline-none placeholder:text-stone-200" />
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
+              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">Last 4 digits</p>
+              <input type="text" maxLength="4" placeholder="1234"
+                value={last4} onChange={e => setLast4(e.target.value.replace(/\D/g, ''))}
+                className="w-full text-[15px] font-semibold tracking-widest text-stone-800 bg-transparent outline-none placeholder:text-stone-300" />
+            </div>
+
+            <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
+              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Card color</p>
+              <div className="grid grid-cols-3 gap-2">
+                {CARD_COLORS.map(c => (
+                  <button
+                    key={c.id}
+                    onClick={() => setColor(c.id)}
+                    className={`h-12 rounded-xl active:scale-95 transition-transform ${color === c.id ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`}
+                    style={{ background: c.gradient }}
+                  >
+                    {color === c.id && <span className="text-white text-xs font-bold">✓</span>}
+                  </button>
+                ))}
               </div>
             </div>
 
