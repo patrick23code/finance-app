@@ -325,7 +325,15 @@ export default function ActivityPage({ onEditTransaction }) {
               {calendarDays.map((day, i) => {
                 const isToday = isCurrentMonth && day && day.dateStr === todayStr
                 const isSelected = day && day.dateStr === selectedDay
-                const hasTransaction = day && dailyStats[day.dateStr]?.count > 0
+                const stats = day && dailyStats[day.dateStr]
+                const hasTransaction = stats?.count > 0
+                const net = stats?.net ?? 0
+                const fmtNet = (n) => {
+                  const abs = Math.abs(n)
+                  const prefix = n < 0 ? '-' : '+'
+                  if (abs >= 1000) return prefix + (abs / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
+                  return prefix + abs
+                }
 
                 return (
                   <button
@@ -350,8 +358,8 @@ export default function ActivityPage({ onEditTransaction }) {
                       <>
                         <span className="text-sm">{day.date}</span>
                         {hasTransaction && (
-                          <span className={`text-[10px] font-semibold ${isSelected ? 'text-indigo-100' : 'text-[#9E76F4]'}`}>
-                            {dailyStats[day.dateStr].count}
+                          <span className={`text-[10px] font-semibold ${isSelected ? 'text-white/80' : net >= 0 ? 'text-emerald-500' : 'text-red-400'}`}>
+                            {fmtNet(net)}
                           </span>
                         )}
                       </>
