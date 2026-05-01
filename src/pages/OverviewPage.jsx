@@ -283,20 +283,19 @@ function UpcomingPayments({ payments, onViewAll }) {
         {payments.length > 0 ? payments.map(payment => (
           <button
             key={payment.id}
-            className={`snap-start min-w-[238px] max-w-[238px] h-[78px] rounded-[22px] bg-white/88 border px-3.5 py-3 text-left shadow-[0_10px_24px_rgba(49,28,96,0.08)] active:scale-[0.98] transition-transform flex items-center gap-3 ${
-              payment.daysUntil <= 3 ? 'border-amber-200' : 'border-white/70'
-            }`}
+            className="snap-start min-w-[238px] max-w-[238px] h-[78px] rounded-[22px] bg-white/88 border border-white/70 pl-0 pr-3.5 py-3 text-left shadow-[0_10px_24px_rgba(49,28,96,0.08)] active:scale-[0.98] transition-transform flex items-center gap-3 overflow-hidden"
           >
+            <span className="w-1 self-stretch rounded-l-[22px] flex-shrink-0" style={{ backgroundColor: payment.daysUntil === 0 ? '#EF4444' : payment.daysUntil <= 3 ? '#F59E0B' : payment.accent }} />
             <span className={`w-10 h-10 rounded-full ${payment.iconBg} flex items-center justify-center flex-shrink-0`}>
               <payment.Icon size={18} className={payment.iconColor} strokeWidth={2.2} />
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-[13px] font-black text-[#24143F] truncate">{payment.name}</span>
-              <span className={`block text-[11px] font-black mt-1 truncate ${payment.daysUntil <= 3 ? 'text-amber-600' : 'text-[#8F889B]'}`}>
+              <span className={`block text-[11px] font-black mt-1 truncate ${payment.daysUntil === 0 ? 'text-red-500' : payment.daysUntil <= 3 ? 'text-amber-600' : 'text-[#8F889B]'}`}>
                 {payment.dateLabel} · {payment.daysUntil === 0 ? 'due today' : `due in ${payment.daysUntil}d`}
               </span>
             </span>
-            <span className="text-[13px] font-black text-[#170A34] flex-shrink-0 text-right">
+            <span className={`text-[13px] font-black flex-shrink-0 text-right ${payment.daysUntil === 0 ? 'text-red-500' : payment.daysUntil <= 3 ? 'text-amber-600' : 'text-[#170A34]'}`}>
               {fmtShort(payment.amount)}
             </span>
           </button>
@@ -360,6 +359,7 @@ function buildUpcomingPayments(debts, today) {
         Icon: DEBT_ICONS[debt.type] || Landmark,
         iconBg: styles.iconBg,
         iconColor: styles.iconColor,
+        accent: styles.accent,
       }
     })
     .filter(Boolean)

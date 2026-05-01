@@ -11,6 +11,15 @@ const ALL_CATEGORIES = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES]
 const CATEGORY_MAP = Object.fromEntries(ALL_CATEGORIES.map(c => [c.id, c]))
 const DEFAULT_CAT = { emoji: '📦', color: 'bg-stone-400', label: 'Other' }
 
+const fmtDayNet = (n) => {
+  const rounded = Math.round(n)
+  if (rounded === 0) return '0'
+  const abs = Math.abs(rounded)
+  const prefix = rounded < 0 ? '-' : '+'
+  if (abs >= 1000) return prefix + (abs / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
+  return prefix + abs
+}
+
 const tabs = ['List', 'Spending']
 const spendingFilters = ['expenses', 'income', 'all']
 
@@ -325,7 +334,9 @@ export default function ActivityPage({ onEditTransaction }) {
               {calendarDays.map((day, i) => {
                 const isToday = isCurrentMonth && day && day.dateStr === todayStr
                 const isSelected = day && day.dateStr === selectedDay
-                const hasTransaction = day && dailyStats[day.dateStr]?.count > 0
+                const stats = day && dailyStats[day.dateStr]
+                const hasTransaction = stats?.count > 0
+                const net = stats?.net ?? 0
 
                 return (
                   <button
@@ -350,8 +361,8 @@ export default function ActivityPage({ onEditTransaction }) {
                       <>
                         <span className="text-sm">{day.date}</span>
                         {hasTransaction && (
-                          <span className={`text-[10px] font-semibold ${isSelected ? 'text-indigo-100' : 'text-[#9E76F4]'}`}>
-                            {dailyStats[day.dateStr].count}
+                          <span className={`text-[10px] font-semibold ${isSelected ? 'text-white/80' : Math.round(net) > 0 ? 'text-emerald-500' : Math.round(net) < 0 ? 'text-red-400' : 'text-[#8F889B]'}`}>
+                            {fmtDayNet(net)}
                           </span>
                         )}
                       </>
