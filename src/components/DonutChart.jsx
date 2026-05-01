@@ -53,7 +53,7 @@ export default function DonutChart({ segments, size = 140, strokeWidth = 14, cen
       </svg>
       {(centerLabel || centerValue) && (
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          {centerLabel && <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">{centerLabel}</p>}
+          {centerLabel && <p className="text-[10px] font-semibold text-[#8F889B] uppercase tracking-wide">{centerLabel}</p>}
           {centerValue && <p className="text-xl font-bold text-slate-900 tracking-tight">{centerValue}</p>}
         </div>
       )}

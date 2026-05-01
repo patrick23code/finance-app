@@ -16,11 +16,11 @@ const ACCOUNT_TYPES = [
   { id: 'cash', label: 'Cash' },
 ]
 
-export default function AddPage({ onNavigate }) {
+export default function AddPage({ onNavigate, initialMode = 'debt', initialDebtType = 'loan' }) {
   const { user } = useAuth()
   const [saving, setSaving] = useState(false)
 
-  const [debtType, setDebtType] = useState('loan')
+  const [debtType, setDebtType] = useState(initialDebtType)
   const [debtName, setDebtName] = useState('')
   const [debtBank, setDebtBank] = useState('')
   const [selectedIssuer, setSelectedIssuer] = useState(null)
@@ -42,8 +42,7 @@ export default function AddPage({ onNavigate }) {
   const [recurring, setRecurring] = useState(false)
   const [recurringFreq, setRecurringFreq] = useState('monthly')
 
-  // mode: 'debt' | 'account'
-  const [mode, setMode] = useState('debt')
+  const [mode, setMode] = useState(initialMode)
   const [acctName, setAcctName] = useState('')
   const [acctBank, setAcctBank] = useState('')
   const [acctBalance, setAcctBalance] = useState('')
@@ -121,42 +120,38 @@ export default function AddPage({ onNavigate }) {
   }
 
   return (
-    <div className="min-h-svh bg-slate-50 pb-24">
-      <div className="max-w-md mx-auto px-4 pt-14">
+    <div className="min-h-svh finance-dashboard-bg pb-24">
+      <div className="max-w-md mx-auto px-4 pt-14 relative z-10">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
-          <button onClick={() => onNavigate('overview')} className="text-stone-500 font-medium text-[15px]">
+          <button onClick={() => onNavigate('overview')} className="text-[#7F7198] font-medium text-[15px]">
             Cancel
           </button>
-          <h1 className="text-[17px] font-bold text-stone-800">{mode === 'account' ? 'New account' : 'New debt'}</h1>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="text-stone-800 font-semibold text-[15px] disabled:text-stone-300"
-          >
+          <h1 className="text-[17px] font-bold text-[#24143F]">{mode === 'account' ? 'New account' : 'New debt'}</h1>
+          <button onClick={handleSave} disabled={saving} className="text-[#9E76F4] font-semibold text-[15px] disabled:text-[#7F7198]">
             Save
           </button>
         </div>
 
         {/* Mode: Debt vs Account */}
-        <div className="bg-stone-200 rounded-2xl p-1 flex mb-3">
+        <div className="bg-white/70 rounded-2xl p-1 flex mb-3">
           <button onClick={() => setMode('debt')}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${mode === 'debt' ? 'bg-white text-stone-800 shadow-sm' : 'text-stone-500'}`}>
+            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${mode === 'debt' ? 'bg-[#F2EEF8] text-[#24143F] shadow-sm' : 'text-[#8F889B]'}`}>
             Debt
           </button>
           <button onClick={() => setMode('account')}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${mode === 'account' ? 'bg-white text-stone-800 shadow-sm' : 'text-stone-500'}`}>
+            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${mode === 'account' ? 'bg-[#F2EEF8] text-[#24143F] shadow-sm' : 'text-[#8F889B]'}`}>
             Account
           </button>
         </div>
 
         {/* Debt Type Selector */}
         {mode === 'debt' && (
-          <div className="bg-stone-200 rounded-2xl p-1 flex mb-5">
+          <div className="bg-white/70 rounded-2xl p-1 flex mb-5">
             {DEBT_TYPES.map(t => (
               <button key={t.id} onClick={() => setDebtType(t.id)}
-                className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all ${debtType === t.id ? 'bg-white text-stone-800 shadow-sm' : 'text-stone-500'}`}>
+                className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all ${debtType === t.id ? 'bg-[#F2EEF8] text-[#24143F] shadow-sm' : 'text-[#8F889B]'}`}>
                 {t.label}
               </button>
             ))}
@@ -168,7 +163,7 @@ export default function AddPage({ onNavigate }) {
 
           {/* Account Form */}
           {mode === 'account' && (
-            <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-white/90 rounded-2xl overflow-hidden border border-[#E9E3F3]">
               <DebtField label="Account name" value={acctName} onChange={setAcctName} placeholder="e.g. Chase Debit" />
               <DebtField label="Bank" value={acctBank} onChange={setAcctBank} placeholder="e.g. Chase" />
               <DebtField label="Balance" value={acctBalance} onChange={setAcctBalance} placeholder="5,000" type="number" prefix="$" last />
@@ -176,54 +171,53 @@ export default function AddPage({ onNavigate }) {
           )}
 
           {/* Debt Fields */}
-          {mode === 'debt' && (<div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-            {debtType === 'credit_card' ? (
-              <>
-                <DebtField label="Card name" value={debtName} onChange={setDebtName} placeholder="e.g. Sapphire Reserve" />
-                <div className="flex items-center px-4 py-3.5 gap-3 border-b border-stone-100">
-                  <p className="text-stone-400 text-[15px] w-32 flex-shrink-0">Issuer</p>
-                  <div className="flex-1">
-                    <IssuerCombobox
-                      value={selectedIssuer}
-                      onChange={b => { setSelectedIssuer(b); setDebtBank(b.name) }}
-                    />
+          {mode === 'debt' && (
+            <div className="bg-white/90 rounded-2xl overflow-hidden border border-[#E9E3F3]">
+              {debtType === 'credit_card' ? (
+                <>
+                  <DebtField label="Card name" value={debtName} onChange={setDebtName} placeholder="e.g. Sapphire Reserve" />
+                  <div className="flex items-center px-4 py-3.5 gap-3 border-b border-[#E9E3F3]">
+                    <p className="text-[#8F889B] text-[15px] w-32 flex-shrink-0">Issuer</p>
+                    <div className="flex-1">
+                      <IssuerCombobox value={selectedIssuer} onChange={b => { setSelectedIssuer(b); setDebtBank(b.name) }} />
+                    </div>
                   </div>
-                </div>
-                <DebtField label="Last 4" value={debtLast4} onChange={setDebtLast4} placeholder="4821" type="number" />
-                <DebtField label="Credit limit" value={debtCreditLimit} onChange={setDebtCreditLimit} placeholder="12,000" type="number" prefix="$" />
-                <DebtField label="Current balance" value={debtRemaining} onChange={setDebtRemaining} placeholder="2,840" type="number" prefix="$" />
-                <DebtField label="Min. payment" value={debtMinPayment} onChange={setDebtMinPayment} placeholder="85" type="number" prefix="$" />
-                <DebtField label="APR" value={debtApr} onChange={setDebtApr} placeholder="21.9" type="number" suffix="%" last />
-              </>
-            ) : debtType === 'personal' ? (
-              <>
-                <DebtField label="Person" value={debtPerson} onChange={setDebtPerson} placeholder="e.g. Emre Y." />
-                <DebtFieldSelect label="Direction" value={debtDirection} onChange={setDebtDirection}
-                  options={[{ id: 'you_owe', label: 'You owe them' }, { id: 'they_owe', label: 'They owe you' }]} />
-                <DebtField label="Amount" value={debtRemaining} onChange={setDebtRemaining} placeholder="320" type="number" prefix="$" />
-                <DebtField label="For" value={debtFor} onChange={setDebtFor} placeholder="e.g. Concert tickets" />
-                <DebtField label="Since" value={debtSince} onChange={setDebtSince} type="date" />
-                <DebtFieldToggle label="Remind" value={debtRemind} onChange={setDebtRemind} last />
-              </>
-            ) : (
-              <>
-                <DebtField label="Name" value={debtName} onChange={setDebtName} placeholder="e.g. Home Mortgage" />
-                <DebtField label="Bank" value={debtBank} onChange={setDebtBank} placeholder="e.g. First National" />
-                <DebtField label="Remaining" value={debtRemaining} onChange={setDebtRemaining} placeholder="42,300" type="number" prefix="$" />
-                <DebtField label="Original amount" value={debtOriginal} onChange={setDebtOriginal} placeholder="optional" type="number" prefix="$" />
-                <DebtField label="Monthly" value={debtMonthly} onChange={setDebtMonthly} placeholder="1,280" type="number" prefix="$" />
-                <DebtField label="APR" value={debtApr} onChange={setDebtApr} placeholder="5.2" type="number" suffix="%" />
-                <DebtField label="End date" value={debtEndDate} onChange={setDebtEndDate} placeholder="Nov 2029" />
-                <DebtField label="Due day" value={debtDueDay} onChange={setDebtDueDay} placeholder="15" type="number" />
-                <DebtFieldToggle label="Recurring" value={recurring} onChange={setRecurring} last />
-              </>
-            )}
-          </div>)}
+                  <DebtField label="Last 4" value={debtLast4} onChange={setDebtLast4} placeholder="4821" type="number" />
+                  <DebtField label="Credit limit" value={debtCreditLimit} onChange={setDebtCreditLimit} placeholder="12,000" type="number" prefix="$" />
+                  <DebtField label="Current balance" value={debtRemaining} onChange={setDebtRemaining} placeholder="2,840" type="number" prefix="$" />
+                  <DebtField label="Min. payment" value={debtMinPayment} onChange={setDebtMinPayment} placeholder="85" type="number" prefix="$" />
+                  <DebtField label="APR" value={debtApr} onChange={setDebtApr} placeholder="21.9" type="number" suffix="%" last />
+                </>
+              ) : debtType === 'personal' ? (
+                <>
+                  <DebtField label="Person" value={debtPerson} onChange={setDebtPerson} placeholder="e.g. Emre Y." />
+                  <DebtFieldSelect label="Direction" value={debtDirection} onChange={setDebtDirection}
+                    options={[{ id: 'you_owe', label: 'You owe them' }, { id: 'they_owe', label: 'They owe you' }]} />
+                  <DebtField label="Amount" value={debtRemaining} onChange={setDebtRemaining} placeholder="320" type="number" prefix="$" />
+                  <DebtField label="For" value={debtFor} onChange={setDebtFor} placeholder="e.g. Concert tickets" />
+                  <DebtField label="Since" value={debtSince} onChange={setDebtSince} type="date" />
+                  <DebtFieldToggle label="Remind" value={debtRemind} onChange={setDebtRemind} last />
+                </>
+              ) : (
+                <>
+                  <DebtField label="Name" value={debtName} onChange={setDebtName} placeholder="e.g. Home Mortgage" />
+                  <DebtField label="Bank" value={debtBank} onChange={setDebtBank} placeholder="e.g. First National" />
+                  <DebtField label="Remaining" value={debtRemaining} onChange={setDebtRemaining} placeholder="42,300" type="number" prefix="$" />
+                  <DebtField label="Original amount" value={debtOriginal} onChange={setDebtOriginal} placeholder="optional" type="number" prefix="$" />
+                  <DebtField label="Monthly" value={debtMonthly} onChange={setDebtMonthly} placeholder="1,280" type="number" prefix="$" />
+                  <DebtField label="APR" value={debtApr} onChange={setDebtApr} placeholder="5.2" type="number" suffix="%" />
+                  <DebtField label="End date" value={debtEndDate} onChange={setDebtEndDate} placeholder="Nov 2029" />
+                  <DebtField label="Due day" value={debtDueDay} onChange={setDebtDueDay} placeholder="15" type="number" />
+                  <DebtFieldToggle label="Recurring" value={recurring} onChange={setRecurring} last />
+                </>
+              )}
+            </div>
+          )}
 
           {/* Recurring frequency */}
           {mode === 'debt' && debtType === 'loan' && recurring && (
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
-              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Payment frequency</p>
+            <div className="bg-white/90 rounded-2xl p-4 border border-[#E9E3F3]">
+              <p className="text-[10px] font-semibold text-[#8F889B] uppercase tracking-wide mb-3">Payment frequency</p>
               <div className="flex gap-2">
                 {[
                   { id: 'weekly', label: 'Weekly' },
@@ -231,7 +225,7 @@ export default function AddPage({ onNavigate }) {
                   { id: 'monthly', label: 'Monthly' },
                 ].map(f => (
                   <button key={f.id} onClick={() => setRecurringFreq(f.id)}
-                    className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all ${recurringFreq === f.id ? 'bg-stone-800 text-white' : 'bg-stone-100 text-stone-500'}`}>
+                    className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all ${recurringFreq === f.id ? 'bg-[#180B3D] text-white' : 'bg-[#F2EEF8] text-[#8F889B]'}`}>
                     {f.label}
                   </button>
                 ))}
@@ -239,19 +233,19 @@ export default function AddPage({ onNavigate }) {
             </div>
           )}
 
-          {/* Payment Reminder (not for personal, not for account) */}
+          {/* Payment Reminder */}
           {mode === 'debt' && debtType !== 'personal' && (
-            <div className="bg-white rounded-2xl px-4 py-3 shadow-sm flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center flex-shrink-0">
-                <Bell size={18} className="text-stone-500" />
+            <div className="bg-white/90 rounded-2xl px-4 py-3 border border-[#E9E3F3] flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#F2EEF8] flex items-center justify-center flex-shrink-0">
+                <Bell size={18} className="text-[#7F7198]" />
               </div>
               <div className="flex-1">
-                <p className="font-semibold text-stone-800 text-[15px]">Payment reminder</p>
-                <p className="text-xs text-stone-400">3 days before due date</p>
+                <p className="font-semibold text-[#24143F] text-[15px]">Payment reminder</p>
+                <p className="text-xs text-[#8F889B]">3 days before due date</p>
               </div>
               <button
                 onClick={() => setPaymentReminder(!paymentReminder)}
-                className={`w-12 h-7 rounded-full transition-colors relative flex-shrink-0 ${paymentReminder ? 'bg-stone-700' : 'bg-stone-200'}`}
+                className={`w-12 h-7 rounded-full transition-colors relative flex-shrink-0 ${paymentReminder ? 'bg-[#180B3D]' : 'bg-slate-700'}`}
               >
                 <span className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-all ${paymentReminder ? 'left-6' : 'left-1'}`} />
               </button>
@@ -260,10 +254,10 @@ export default function AddPage({ onNavigate }) {
 
           {/* Payoff Goal */}
           {mode === 'debt' && payoffGoal && (
-            <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
-              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-2">Payoff Goal</p>
-              <p className="font-bold text-stone-800 text-[17px]">Pay ${payoffGoal.extra} extra/month</p>
-              <p className="text-sm text-stone-400 mt-0.5">
+            <div className="bg-white/90 rounded-2xl px-4 py-4 border border-[#E9E3F3]">
+              <p className="text-[10px] font-semibold text-[#8F889B] uppercase tracking-wide mb-2">Payoff Goal</p>
+              <p className="font-bold text-[#24143F] text-[17px]">Pay ${payoffGoal.extra} extra/month</p>
+              <p className="text-sm text-[#7F7198] mt-0.5">
                 Saves ${payoffGoal.savedInterest.toLocaleString()} in interest · ends {payoffGoal.savedMonths} months sooner
               </p>
             </div>
@@ -278,19 +272,19 @@ function DebtField({ label, value, onChange, placeholder = '', type = 'text', pr
   return (
     <>
       <div className="flex items-center px-4 py-3.5 gap-3">
-        <p className="text-stone-400 text-[15px] w-32 flex-shrink-0">{label}</p>
+        <p className="text-[#8F889B] text-[15px] w-32 flex-shrink-0">{label}</p>
         <div className="flex items-center gap-1 flex-1 justify-end">
-          {prefix && <span className="text-stone-300 font-semibold">$</span>}
+          {prefix && <span className="text-[#7F7198] font-semibold">$</span>}
           <input
             type={type} inputMode={type === 'number' ? 'decimal' : 'text'}
             value={value} onChange={e => onChange(e.target.value)}
             placeholder={placeholder}
-            className="text-right font-semibold text-stone-800 bg-transparent outline-none placeholder:text-stone-200 text-[15px] min-w-0 flex-1"
+            className="text-right font-semibold text-[#24143F] bg-transparent outline-none placeholder:text-[#4B376E] text-[15px] min-w-0 flex-1"
           />
-          {suffix && <span className="text-stone-400 text-sm ml-1">{suffix}</span>}
+          {suffix && <span className="text-[#8F889B] text-sm ml-1">{suffix}</span>}
         </div>
       </div>
-      {!last && <div className="h-px bg-stone-100 mx-4" />}
+      {!last && <div className="h-px bg-[#E9E3F3] mx-4" />}
     </>
   )
 }
@@ -299,15 +293,15 @@ function DebtFieldSelect({ label, value, onChange, options, last }) {
   return (
     <>
       <div className="flex items-center px-4 py-3.5 gap-3">
-        <p className="text-stone-400 text-[15px] w-32 flex-shrink-0">{label}</p>
+        <p className="text-[#8F889B] text-[15px] w-32 flex-shrink-0">{label}</p>
         <div className="flex-1 flex justify-end">
           <select value={value} onChange={e => onChange(e.target.value)}
-            className="font-semibold text-stone-800 bg-transparent outline-none text-[15px] text-right appearance-none">
-            {options.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+            className="font-semibold text-[#24143F] bg-transparent outline-none text-[15px] text-right appearance-none">
+            {options.map(o => <option key={o.id} value={o.id} style={{ background: '#131726' }}>{o.label}</option>)}
           </select>
         </div>
       </div>
-      {!last && <div className="h-px bg-stone-100 mx-4" />}
+      {!last && <div className="h-px bg-[#E9E3F3] mx-4" />}
     </>
   )
 }
@@ -316,16 +310,16 @@ function DebtFieldToggle({ label, value, onChange, last }) {
   return (
     <>
       <div className="flex items-center px-4 py-3.5 gap-3">
-        <p className="text-stone-400 text-[15px] w-32 flex-shrink-0">{label}</p>
+        <p className="text-[#8F889B] text-[15px] w-32 flex-shrink-0">{label}</p>
         <div className="flex-1 flex justify-end items-center gap-3">
-          <span className="text-[15px] font-semibold text-stone-800">{value ? 'On' : 'Off'}</span>
+          <span className="text-[15px] font-semibold text-[#24143F]">{value ? 'On' : 'Off'}</span>
           <button onClick={() => onChange(!value)}
-            className={`w-11 h-6 rounded-full transition-colors relative ${value ? 'bg-stone-700' : 'bg-stone-200'}`}>
+            className={`w-11 h-6 rounded-full transition-colors relative ${value ? 'bg-[#180B3D]' : 'bg-slate-700'}`}>
             <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${value ? 'left-5' : 'left-0.5'}`} />
           </button>
         </div>
       </div>
-      {!last && <div className="h-px bg-stone-100 mx-4" />}
+      {!last && <div className="h-px bg-[#E9E3F3] mx-4" />}
     </>
   )
 }

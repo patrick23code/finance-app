@@ -1,28 +1,42 @@
-import { useState } from 'react'
-import { createPortal } from 'react-dom'
-import { Plus, Trash2, Repeat, Calendar } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Calendar, ChevronRight, Plus, Repeat, Trash2, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCollection, addDocument, updateDocument, deleteDocument } from '../hooks/useFirestore'
 import { EXPENSE_CATEGORIES } from '../constants/categories'
 
-const ACCOUNT_ICONS = { checking: '🏦', savings: '💰', cash: '💵' }
-
-const CATEGORIES = EXPENSE_CATEGORIES
-
+const ACCOUNT_ICONS = { checking: '🏦', savings: '💰', cash: '💵', digital_wallet: '📱' }
 const CAT_COLOR_MAP = Object.fromEntries(EXPENSE_CATEGORIES.map(c => [c.id, c.color]))
 const CAT_EMOJI_MAP = Object.fromEntries(EXPENSE_CATEGORIES.map(c => [c.id, c.emoji]))
+const CAT_LABEL_MAP = Object.fromEntries(EXPENSE_CATEGORIES.map(c => [c.id, c.label]))
+
+const EXAMPLES = [
+  { name: 'Spotify Plan', category: 'Subscription', frequency: 'Every month, day 29', amount: 13.12, emoji: '🎧', color: 'bg-emerald-500' },
+  { name: 'iCloud +6TB plan', category: 'Subscription', frequency: 'Every month, day 1', amount: 29.99, emoji: '☁️', color: 'bg-sky-500' },
+  { name: 'Tesla payments', category: 'Car Loan', frequency: 'Every month, day 9', amount: 834, emoji: '🚗', color: 'bg-red-400' },
+  { name: 'House rent', category: 'Rent', frequency: 'Every month, day 1', amount: 625, emoji: '🏠', color: 'bg-teal-600' },
+  { name: 'StateFarm', category: 'Car Insurance', frequency: 'Every month, day 27', amount: 193, emoji: '🛡️', color: 'bg-blue-500' },
+  { name: 'Google Fi', category: 'Phone Payment', frequency: 'Every month, day 11', amount: 75, emoji: '📱', color: 'bg-violet-500' },
+  { name: 'ChatGPT', category: 'Subscription', frequency: 'Every month, day 21', amount: 20, emoji: '✨', color: 'bg-[#180B3D]' },
+  { name: 'Gym', category: 'Subscription', frequency: 'Every month, day 1', amount: 40, emoji: '🏋️', color: 'bg-orange-400' },
+]
 
 function fmt(n) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0)
 }
 
-function ordinal(n) {
-  const s = ['th', 'st', 'nd', 'rd']
-  const v = n % 100
-  return n + (s[(v - 20) % 10] || s[v] || s[0])
+function todayString() {
+  return new Date().toISOString().split('T')[0]
 }
 
-export default function RecurringPage() {
+function frequencyText(item) {
+  if (!item.dueDay && typeof item.frequency === 'string' && item.frequency.startsWith('Every')) return item.frequency
+  const frequency = item.frequency || 'monthly'
+  if (frequency === 'weekly') return 'Every week'
+  if (frequency === 'yearly') return `Every year, day ${item.dueDay || 1}`
+  return `Every month, day ${item.dueDay || 1}`
+}
+
+export default function RecurringPage({ startOpenKey = 0 }) {
   const { user } = useAuth()
   const { data: recurring, loading } = useCollection('recurring', user?.uid)
   const { data: debts } = useCollection('debts', user?.uid)
@@ -30,146 +44,86 @@ export default function RecurringPage() {
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState(null)
 
-  const payFromOptions = [
-    ...debts.filter(d => d.type === 'credit_card').map(c => ({ id: c.id, label: c.name, sourceType: 'card', data: c })),
-    ...accounts.map(a => ({ id: a.id, label: a.name, sourceType: 'account', data: a })),
-  ]
+  useEffect(() => {
+    if (startOpenKey > 0) {
+      setEditItem(null)
+      setShowForm(true)
+    }
+  }, [startOpenKey])
 
-  const today = new Date()
-  const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
-  const totalMonthly = recurring.reduce((s, r) => s + (r.amount || 0), 0)
+  const payFromOptions = useMemo(() => [
+    ...accounts.map(a => ({
+      id: a.id,
+      label: a.name,
+      sourceType: 'account',
+      icon: ACCOUNT_ICONS[a.type] || '🏦',
+      data: a,
+    })),
+    ...debts.filter(d => d.type === 'credit_card').map(c => ({
+      id: c.id,
+      label: c.name,
+      sourceType: 'card',
+      icon: '💳',
+      data: c,
+    })),
+  ], [accounts, debts])
 
-  const upcomingDebts = debts
-    .filter(d => d.dueDay)
-    .sort((a, b) => {
-      const dayA = a.dueDay <= today.getDate() ? a.dueDay + 31 : a.dueDay
-      const dayB = b.dueDay <= today.getDate() ? b.dueDay + 31 : b.dueDay
-      return dayA - dayB
-    })
-    .slice(0, 5)
+  const totalMonthly = recurring.reduce((s, r) => s + (r.frequency === 'yearly' ? (r.amount || 0) / 12 : r.amount || 0), 0)
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-svh bg-slate-50">
-      <div className="text-slate-400">Loading...</div>
+    <div className="flex items-center justify-center min-h-svh finance-dashboard-bg">
+      <div className="text-[#8F889B]">Loading...</div>
     </div>
   )
 
   return (
-    <div className="min-h-svh bg-slate-50 pb-24 relative">
-      <div className="max-w-md mx-auto px-4 pt-14">
-        <p className="text-slate-500 text-sm mb-1">Monthly fixed</p>
-        <h1 className="text-3xl font-bold text-slate-800 tracking-tight mb-6">Recurring</h1>
-
-        {/* Summary */}
-        {recurring.length > 0 && (
-          <div className="bg-slate-800 rounded-2xl p-5 mb-4 shadow-sm animate-scale-in border-l-4 border-cyan-400">
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-wide mb-1">Total monthly commitment</p>
-            <p className="text-4xl font-bold text-white tracking-tight mb-3">{fmt(totalMonthly)}</p>
-            <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
-              <div className="h-full bg-cyan-400 w-full" />
-            </div>
-            <p className="text-slate-400 text-xs mt-2 font-medium">{recurring.length} recurring expense{recurring.length !== 1 ? 's' : ''}</p>
+    <div className="min-h-svh finance-dashboard-bg pb-32 relative">
+      <div className="max-w-md mx-auto px-5 pt-10 relative z-10">
+        <div className="text-center mb-6">
+          <div className="w-20 h-20 rounded-[26px] bg-white/90 border border-[#E9E3F3] shadow-[0_12px_34px_rgba(49,28,96,0.12)] flex items-center justify-center mx-auto mb-4">
+            <Repeat size={34} className="text-[#9E76F4]" />
           </div>
-        )}
+          <h1 className="text-[28px] font-black text-[#24143F] tracking-tight">Recurring transactions</h1>
+          <p className="text-[14px] leading-5 text-[#7F7198] font-semibold mt-2">
+            Add recurring transactions for expenses you know will happen regularly.
+          </p>
+        </div>
 
-        {/* Upcoming Debt Payments */}
-        {upcomingDebts.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <Calendar size={16} className="text-stone-500" />
-              <p className="text-xs font-semibold text-stone-500 tracking-wide uppercase">Upcoming payments</p>
-            </div>
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
-              {upcomingDebts.map((d, idx) => {
-                const dueDate = new Date(today.getFullYear(), today.getMonth(), d.dueDay)
-                if (dueDate < today) dueDate.setMonth(dueDate.getMonth() + 1)
-                const monthLabel = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()
-                const daysUntil = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24))
-                return (
-                  <div key={d.id} className="bg-cyan-50 rounded-2xl p-4 min-w-[140px] shadow-sm flex-shrink-0 animate-scale-in border-l-4 border-cyan-400" style={{ animationDelay: `${idx * 50}ms` }}>
-                    <p className="text-[10px] font-semibold text-stone-400 mb-1">{monthLabel}</p>
-                    <p className="font-semibold text-stone-800 text-sm leading-tight mb-2">{d.name}</p>
-                    <p className="font-bold text-stone-800 mb-2">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(d.monthly)}</p>
-                    <p className={`text-xs font-semibold ${daysUntil <= 3 ? 'text-red-500' : 'text-emerald-500'}`}>
-                      {daysUntil === 0 ? 'TODAY' : `${daysUntil}d left`}
-                    </p>
-                  </div>
-                )
-              })}
-            </div>
+        <div className="rounded-[24px] bg-white/92 border border-[#E9E3F3] shadow-[0_12px_34px_rgba(49,28,96,0.10)] p-5 mb-5">
+          <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#8F889B] mb-2">Monthly fixed total</p>
+          <p className="text-[38px] font-black tracking-tight text-[#24143F]">{fmt(totalMonthly)}</p>
+          <p className="text-[12px] font-bold text-[#8F889B] mt-2">{recurring.length} active recurring item{recurring.length === 1 ? '' : 's'}</p>
+        </div>
+
+        <section className="mb-6">
+          <div className="flex items-center justify-between mb-3 px-1">
+            <h2 className="text-[18px] font-black text-[#24143F]">Personal-Budget</h2>
+            <Calendar size={18} className="text-[#9E76F4]" />
           </div>
-        )}
 
-        {recurring.length === 0 ? (
-          <div className="text-center py-20 animate-scale-in">
-            <div className="w-20 h-20 rounded-full bg-stone-100 flex items-center justify-center mx-auto mb-4">
-              <Repeat size={40} className="text-stone-400" />
-            </div>
-            <p className="text-stone-600 font-semibold text-lg">No recurring expenses</p>
-            <p className="text-stone-400 text-sm mt-2">Add your fixed monthly bills to track them here</p>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {recurring.map((item, idx) => {
-              const source = payFromOptions.find(o => o.id === item.sourceId)
-              const isPaid = item.lastProcessedMonth === currentMonth
-              const catId = item.category || 'other'
-              const bgClass = CAT_COLOR_MAP[catId] || 'bg-stone-400'
-              const emoji = CAT_EMOJI_MAP[catId] || '📦'
-              const daysUntilDue = item.dueDay > new Date().getDate()
-                ? item.dueDay - new Date().getDate()
-                : (new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate() - new Date().getDate()) + item.dueDay
+          <div className="bg-white/92 border border-[#E9E3F3] rounded-[24px] shadow-[0_10px_30px_rgba(49,28,96,0.10)] overflow-hidden">
+            {recurring.length > 0 ? recurring.map(item => (
+              <RecurringRow key={item.id} item={item} onClick={() => { setEditItem(item); setShowForm(true) }} />
+            )) : EXAMPLES.map((item, idx) => (
+              <RecurringRow key={item.name} item={item} muted={idx > 3} />
+            ))}
 
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => { setEditItem(item); setShowForm(true) }}
-                  className="bg-emerald-50 rounded-2xl p-4 shadow-sm cursor-pointer active:scale-[0.98] transition-all animate-scale-in border-l-4 border-emerald-400"
-                  style={{ animationDelay: `${idx * 40}ms` }}
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className={`w-12 h-12 rounded-full ${bgClass} flex items-center justify-center text-xl flex-shrink-0`}>
-                      {emoji}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-stone-800 text-sm">{item.name}</p>
-                      <p className="text-xs text-stone-400 mt-0.5">
-                        {ordinal(item.dueDay)} · {source?.label || 'Other'}
-                      </p>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className="font-bold text-stone-800">{fmt(item.amount)}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      {isPaid
-                        ? <span className="inline-block px-2 py-1 bg-emerald-100 text-emerald-700 text-[9px] font-bold rounded-lg">✓ PAID THIS MONTH</span>
-                        : <span className="inline-block px-2 py-1 bg-orange-100 text-orange-700 text-[9px] font-bold rounded-lg">DUE IN {daysUntilDue} DAYS</span>
-                      }
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      {createPortal(
-        <div className="fixed bottom-24 left-0 right-0 z-40 pointer-events-none">
-          <div className="max-w-md mx-auto px-5 flex justify-end">
             <button
               onClick={() => { setEditItem(null); setShowForm(true) }}
-              className="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center active:scale-95 transition-transform pointer-events-auto"
-              style={{ boxShadow: '0 12px 28px -6px rgba(37, 99, 235, 0.5)' }}
+              className="w-full px-4 py-4 flex items-center gap-3 text-left border-t border-[#E9E3F3] active:bg-[#F7F3FC] transition-colors"
             >
-              <Plus size={26} />
+              <span className="w-11 h-11 rounded-full bg-[#180B3D] text-white flex items-center justify-center">
+                <Plus size={20} />
+              </span>
+              <span className="flex-1">
+                <span className="block text-[14px] font-black text-[#24143F]">Create recurring transaction</span>
+                <span className="block text-[12px] font-semibold text-[#8F889B]">Monthly, weekly, or yearly fixed payment</span>
+              </span>
+              <ChevronRight size={18} className="text-[#B4A8C8]" />
             </button>
           </div>
-        </div>,
-        document.body
-      )}
+        </section>
+      </div>
 
       {showForm && (
         <RecurringForm
@@ -183,28 +137,74 @@ export default function RecurringPage() {
   )
 }
 
+function RecurringRow({ item, onClick, muted = false }) {
+  const category = item.category || 'other'
+  const bgClass = item.color || CAT_COLOR_MAP[category] || 'bg-stone-400'
+  const emoji = item.emoji || CAT_EMOJI_MAP[category] || '📦'
+  const label = item.categoryName || CAT_LABEL_MAP[category] || item.category || 'Other'
+  const content = (
+    <>
+      <span className={`w-12 h-12 rounded-full ${bgClass} flex items-center justify-center text-xl flex-shrink-0 ${muted ? 'opacity-70' : ''}`}>
+        {emoji}
+      </span>
+      <span className="flex-1 min-w-0">
+        <span className="block text-[14px] font-black text-[#24143F] truncate">{item.name}</span>
+        <span className="block text-[12px] font-bold text-[#8F889B] truncate">{label}</span>
+        <span className="block text-[11px] font-semibold text-[#A095B2] mt-0.5">{item.frequency ? frequencyText(item) : item.frequency || frequencyText(item)}</span>
+      </span>
+      <span className="text-[14px] font-black text-[#24143F]">{fmt(item.amount)}</span>
+    </>
+  )
+
+  if (!onClick) {
+    return <div className={`px-4 py-3 flex items-center gap-3 ${muted ? 'opacity-50' : ''}`}>{content}</div>
+  }
+
+  return (
+    <button onClick={onClick} className="w-full px-4 py-3 flex items-center gap-3 text-left active:bg-[#F7F3FC] transition-colors">
+      {content}
+    </button>
+  )
+}
+
 function RecurringForm({ item, payFromOptions, onClose, userId }) {
   const [name, setName] = useState(item?.name || '')
   const [amount, setAmount] = useState(item ? String(item.amount) : '')
-  const [dueDay, setDueDay] = useState(item ? String(item.dueDay) : '')
-  const [category, setCategory] = useState(item?.category || '')
-  const [source, setSource] = useState(item?.cardName || '')
+  const [category, setCategory] = useState(item?.category || 'subscriptions')
+  const [sourceId, setSourceId] = useState(item?.sourceId || '')
+  const [toId, setToId] = useState(item?.toAccountId || '')
+  const [frequency, setFrequency] = useState(item?.frequency || 'monthly')
+  const [dueDay, setDueDay] = useState(item ? String(item.dueDay || '') : '1')
+  const [startDate, setStartDate] = useState(item?.startDate || todayString())
+  const [endDate, setEndDate] = useState(item?.endDate || '')
+  const [note, setNote] = useState(item?.note || '')
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
+  const selectedSource = payFromOptions.find(o => o.id === sourceId)
+  const selectedTo = payFromOptions.find(o => o.id === toId)
+  const canSave = name && Number(amount) > 0 && category && sourceId && dueDay
+
   async function handleSave() {
-    if (!name || !amount || !dueDay) return
+    if (!canSave) return
     setSaving(true)
     try {
-      const selected = source ? payFromOptions.find(o => o.label === source) : null
+      const categoryData = EXPENSE_CATEGORIES.find(c => c.id === category)
       const payload = {
         name,
         amount: parseFloat(amount),
+        category,
+        categoryName: categoryData?.label || category,
+        cardName: selectedSource?.label || null,
+        sourceId: selectedSource?.id || null,
+        sourceType: selectedSource?.sourceType || null,
+        toAccountId: selectedTo?.id || null,
+        toAccountName: selectedTo?.label || null,
+        frequency,
         dueDay: parseInt(dueDay),
-        category: category || 'other',
-        cardName: source || null,
-        sourceId: selected?.id || null,
-        sourceType: selected?.sourceType || null,
+        startDate,
+        endDate: endDate || null,
+        note: note || null,
       }
       if (item) {
         await updateDocument('recurring', item.id, payload)
@@ -229,92 +229,69 @@ function RecurringForm({ item, payFromOptions, onClose, userId }) {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl max-h-[92vh] overflow-y-auto">
-        <div className="max-w-md mx-auto px-4 pt-4 pb-20">
-          <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-4" />
+      <button className="fixed inset-0 bg-[#180B3D]/60 backdrop-blur-sm z-[80]" onClick={onClose} aria-label="Close recurring form" />
+      <div className="fixed bottom-0 left-0 right-0 z-[81] bg-white rounded-t-[30px] max-h-[92vh] overflow-y-auto">
+        <div className="max-w-md mx-auto px-5 pt-4 pb-24">
+          <div className="w-10 h-1 bg-[#D8D0E8] rounded-full mx-auto mb-4" />
 
           <div className="flex items-center justify-between mb-5">
-            <button onClick={onClose} className="text-stone-500 font-medium text-[15px]">Cancel</button>
-            <h2 className="text-[17px] font-bold text-stone-800">{item ? 'Edit recurring' : 'New recurring'}</h2>
-            <button onClick={handleSave} disabled={saving || !name || !amount || !dueDay}
-              className="text-stone-800 font-semibold text-[15px] disabled:text-stone-300">
+            <button onClick={onClose} className="w-10 h-10 rounded-full bg-[#F2EEF8] flex items-center justify-center text-[#4B376E]">
+              <X size={18} />
+            </button>
+            <h2 className="text-[17px] font-black text-[#24143F]">{item ? 'Edit recurring' : 'New recurring'}</h2>
+            <button onClick={handleSave} disabled={saving || !canSave}
+              className="text-[#9E76F4] font-black text-[15px] disabled:text-[#B4A8C8]">
               Save
             </button>
           </div>
 
           <div className="flex flex-col gap-3">
-            <div className="bg-gradient-to-br from-white to-stone-50 rounded-2xl px-4 py-4 shadow-sm border border-stone-100/50">
-              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">Name</p>
-              <input type="text" placeholder="e.g. Netflix"
-                value={name} onChange={e => setName(e.target.value)}
-                className="w-full text-[15px] font-semibold text-stone-800 bg-transparent outline-none placeholder:text-stone-300" />
-            </div>
+            <FormField label="Transaction name" value={name} onChange={setName} placeholder="Spotify Plan" />
+            <FormField label="Amount" value={amount} onChange={setAmount} placeholder="13.12" type="number" prefix="$" />
 
-            <div className="bg-gradient-to-br from-white to-stone-50 rounded-2xl px-4 py-4 shadow-sm border border-stone-100/50">
-              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">Amount</p>
-              <div className="flex items-center gap-1">
-                <span className="text-2xl font-bold text-stone-300">$</span>
-                <input type="number" inputMode="decimal" placeholder="0.00"
-                  value={amount} onChange={e => setAmount(e.target.value)}
-                  className="flex-1 text-2xl font-bold text-stone-800 bg-transparent outline-none placeholder:text-stone-200" />
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-white to-stone-50 rounded-2xl px-4 py-4 shadow-sm border border-stone-100/50">
-              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">Due day of month</p>
-              <input type="number" inputMode="numeric" placeholder="e.g. 15" min="1" max="31"
-                value={dueDay} onChange={e => setDueDay(e.target.value)}
-                className="w-full text-[15px] font-semibold text-stone-800 bg-transparent outline-none placeholder:text-stone-300" />
-            </div>
-
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
-              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Category</p>
-              <div className="grid grid-cols-4 gap-2">
-                {CATEGORIES.map(c => (
-                  <button key={c.id} onClick={() => setCategory(c.id)}
-                    className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all active:scale-95 ${category === c.id ? 'bg-stone-800' : 'bg-stone-50'}`}>
-                    <span className="text-xl">{c.emoji}</span>
-                    <span className={`text-[9px] font-medium leading-tight text-center ${category === c.id ? 'text-white' : 'text-stone-500'}`}>
-                      {c.label}
+            <div className="bg-white rounded-[20px] p-4 border border-[#E9E3F3]">
+              <p className="text-[10px] font-black text-[#8F889B] uppercase tracking-wide mb-3">Category</p>
+              <div className="grid grid-cols-4 gap-x-3 gap-y-4">
+                {EXPENSE_CATEGORIES.map(c => (
+                  <button key={c.id} onClick={() => setCategory(c.id)} className="flex flex-col items-center gap-1 active:scale-95 transition-transform">
+                    <span className={`w-12 h-12 rounded-full flex items-center justify-center text-xl text-white ${c.color} ${category === c.id ? 'ring-2 ring-[#9E76F4] ring-offset-2 ring-offset-white' : ''}`}>
+                      {c.emoji}
                     </span>
+                    <span className="text-[10px] font-bold text-[#4B376E] leading-tight text-center truncate w-full">{c.label.replace(' & Dining', '')}</span>
                   </button>
                 ))}
               </div>
             </div>
 
-            {payFromOptions.length > 0 && (
-              <div className="bg-gradient-to-br from-white to-stone-50 rounded-2xl px-4 py-4 shadow-sm border border-stone-100/50">
-                <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Paid from</p>
-                <div className="flex gap-2 flex-wrap">
-                  <button onClick={() => setSource('')}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold ${!source ? 'bg-stone-800 text-white' : 'bg-stone-100 text-stone-600'}`}>
-                    Other
-                  </button>
-                  {payFromOptions.map(o => (
-                    <button key={o.id} onClick={() => setSource(o.label)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 ${source === o.label ? 'bg-stone-800 text-white' : 'bg-stone-100 text-stone-600'}`}>
-                      {o.sourceType === 'account' && <span>{ACCOUNT_ICONS[o.data.type] || '🏦'}</span>}
-                      {o.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+            <SelectField label="From account/card" value={sourceId} onChange={setSourceId} options={payFromOptions} placeholder="Select account" />
+            <SelectField label="To account/card" value={toId} onChange={setToId} options={[{ id: '', label: 'Optional / None' }, ...payFromOptions]} placeholder="Optional / None" />
+
+            <div className="bg-[#F7F3FC] rounded-[20px] p-1 flex border border-[#E9E3F3]">
+              {['monthly', 'weekly', 'yearly'].map(option => (
+                <button key={option} onClick={() => setFrequency(option)} className={`flex-1 py-2.5 rounded-[15px] text-xs font-black capitalize ${frequency === option ? 'bg-white text-[#24143F] shadow-sm' : 'text-[#8F889B]'}`}>
+                  {option}
+                </button>
+              ))}
+            </div>
+
+            <FormField label="Day of month" value={dueDay} onChange={setDueDay} placeholder="1" type="number" />
+            <FormField label="Start date" value={startDate} onChange={setStartDate} type="date" />
+            <FormField label="End date" value={endDate} onChange={setEndDate} type="date" placeholder="Optional" />
+            <FormField label="Note" value={note} onChange={setNote} placeholder="Optional note" />
 
             {item && !confirmDelete && (
               <button onClick={() => setConfirmDelete(true)}
-                className="w-full py-3 rounded-2xl border border-red-200 text-red-500 text-sm font-semibold flex items-center justify-center gap-2">
+                className="w-full py-3 rounded-2xl border border-red-500/30 text-red-400 text-sm font-semibold flex items-center justify-center gap-2">
                 <Trash2 size={16} />
                 Delete recurring
               </button>
             )}
             {item && confirmDelete && (
-              <div className="bg-red-50 rounded-2xl p-4 flex flex-col gap-2">
-                <p className="text-sm font-semibold text-red-600 text-center">Delete this recurring expense?</p>
+              <div className="bg-red-50 rounded-2xl p-4 flex flex-col gap-2 border border-red-200">
+                <p className="text-sm font-semibold text-red-500 text-center">Delete this recurring transaction?</p>
                 <div className="flex gap-2">
                   <button onClick={() => setConfirmDelete(false)}
-                    className="flex-1 py-2.5 rounded-xl bg-stone-100 text-stone-600 text-sm font-semibold">Cancel</button>
+                    className="flex-1 py-2.5 rounded-xl bg-[#F2EEF8] text-[#7F7198] text-sm font-semibold">Cancel</button>
                   <button onClick={handleDelete} disabled={saving}
                     className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold disabled:opacity-50">Delete</button>
                 </div>
@@ -324,5 +301,42 @@ function RecurringForm({ item, payFromOptions, onClose, userId }) {
         </div>
       </div>
     </>
+  )
+}
+
+function FormField({ label, value, onChange, placeholder = '', type = 'text', prefix }) {
+  return (
+    <div className="bg-[#F7F3FC] rounded-[20px] px-4 py-4 border border-[#E9E3F3]">
+      <p className="text-[10px] font-black text-[#8F889B] uppercase tracking-wide mb-1">{label}</p>
+      <div className="flex items-center gap-1">
+        {prefix && <span className="text-xl font-black text-[#7F7198]">{prefix}</span>}
+        <input
+          type={type}
+          inputMode={type === 'number' ? 'decimal' : 'text'}
+          placeholder={placeholder}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          className="w-full text-[15px] font-bold text-[#24143F] bg-transparent outline-none placeholder:text-[#B4A8C8]"
+        />
+      </div>
+    </div>
+  )
+}
+
+function SelectField({ label, value, onChange, options, placeholder }) {
+  return (
+    <div className="bg-[#F7F3FC] rounded-[20px] px-4 py-4 border border-[#E9E3F3]">
+      <p className="text-[10px] font-black text-[#8F889B] uppercase tracking-wide mb-1">{label}</p>
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="w-full text-[15px] font-bold text-[#24143F] bg-transparent outline-none"
+      >
+        <option value="">{placeholder}</option>
+        {options.filter(o => o.id !== '').map(option => (
+          <option key={`${label}-${option.id}`} value={option.id}>{option.label}</option>
+        ))}
+      </select>
+    </div>
   )
 }

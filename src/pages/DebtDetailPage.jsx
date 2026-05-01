@@ -9,7 +9,7 @@ import IssuerCombobox from '../components/IssuerCombobox'
 
 const CATEGORY_ICONS = {
   cigarettes: { emoji: '🚬', color: 'bg-stone-600' },
-  gas: { emoji: '⛽', color: 'bg-red-500' },
+  gas: { emoji: '⛽', color: 'bg-red-900/30 border border-red-500/200' },
   groceries: { emoji: '🛒', color: 'bg-green-600' },
   food: { emoji: '🍔', color: 'bg-orange-500' },
   coffee: { emoji: '☕', color: 'bg-amber-700' },
@@ -20,7 +20,7 @@ const CATEGORY_ICONS = {
   utilities: { emoji: '💡', color: 'bg-cyan-500' },
   rent: { emoji: '🏠', color: 'bg-teal-600' },
   salary: { emoji: '💰', color: 'bg-emerald-500' },
-  freelance: { emoji: '💻', color: 'bg-indigo-500' },
+  freelance: { emoji: '💻', color: 'bg-[#9E76F4]' },
   other: { emoji: '📦', color: 'bg-stone-400' },
 }
 
@@ -70,7 +70,8 @@ export default function DebtDetailPage({ debt, onBack, onEditTransaction }) {
   async function handleDelete() {
     setDeleting(true)
     try {
-      await deleteDocument('debts', debt.id)
+      const collection = isAccount ? 'accounts' : 'debts'
+      await deleteDocument(collection, debt.id)
       onBack()
     } catch (e) {
       console.warn('Delete failed:', e)
@@ -79,52 +80,52 @@ export default function DebtDetailPage({ debt, onBack, onEditTransaction }) {
   }
 
   return (
-    <div className="min-h-svh bg-slate-50 pb-24">
-      <div className="max-w-md mx-auto px-4 pt-14">
+    <div className="min-h-svh finance-dashboard-bg pb-24">
+      <div className="max-w-md mx-auto px-4 pt-14 relative z-10">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <button onClick={onBack} className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-sm">
-              <ChevronLeft size={20} className="text-stone-600" />
+            <button onClick={onBack} className="w-9 h-9 bg-white/90 rounded-full flex items-center justify-center border border-[#E9E3F3]">
+              <ChevronLeft size={20} className="text-[#7F7198]" />
             </button>
             <div className="flex items-center gap-2">
               <BankLogo bankId={debt.issuerId} bankName={debt.bank} size={36} />
               <div>
-                {debt.bank && <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide">{debt.bank}</p>}
-                <h1 className="text-xl font-bold text-stone-800 tracking-tight">{debt.name}</h1>
+                {debt.bank && <p className="text-[10px] font-semibold text-[#8F889B] uppercase tracking-wide">{debt.bank}</p>}
+                <h1 className="text-xl font-bold text-[#24143F] tracking-tight">{debt.name}</h1>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setShowEdit(true)} className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100">
-              <Edit2 size={18} className="text-blue-600" />
+            <button onClick={() => setShowEdit(true)} className="w-9 h-9 bg-white/90 rounded-full flex items-center justify-center border border-[#E9E3F3] border border-[#E9E3F3]">
+              <Edit2 size={18} className="text-[#9E76F4]" />
             </button>
-            <button onClick={() => setConfirmDelete(true)} className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100">
+            <button onClick={() => setConfirmDelete(true)} className="w-9 h-9 bg-white/90 rounded-full flex items-center justify-center border border-[#E9E3F3] border border-[#E9E3F3]">
               <Trash2 size={18} className="text-red-500" />
             </button>
           </div>
         </div>
 
         {/* Summary Card — hidden for bank accounts */}
-        {!isAccount && <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
+        {!isAccount && <div className="bg-white/90 rounded-2xl p-4 mb-4 border border-[#E9E3F3]">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">
+              <p className="text-[10px] font-semibold text-[#8F889B] uppercase tracking-wide mb-1">
                 {isCC ? 'Current balance' : 'Remaining'}
               </p>
-              <p className="text-3xl font-bold text-stone-800">{fmt(debt.remaining)}</p>
+              <p className="text-3xl font-bold text-[#24143F]">{fmt(debt.remaining)}</p>
             </div>
             {isCC && debt.creditLimit && (
               <div className="text-right">
-                <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">Limit</p>
-                <p className="text-lg font-bold text-stone-500">{fmt(debt.creditLimit)}</p>
+                <p className="text-[10px] font-semibold text-[#8F889B] uppercase tracking-wide mb-1">Limit</p>
+                <p className="text-lg font-bold text-[#8F889B]">{fmt(debt.creditLimit)}</p>
               </div>
             )}
             {!isCC && debt.monthly && (
               <div className="text-right">
-                <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">Monthly</p>
-                <p className="text-lg font-bold text-stone-500">{fmt(debt.monthly)}</p>
+                <p className="text-[10px] font-semibold text-[#8F889B] uppercase tracking-wide mb-1">Monthly</p>
+                <p className="text-lg font-bold text-[#8F889B]">{fmt(debt.monthly)}</p>
               </div>
             )}
           </div>
@@ -134,29 +135,29 @@ export default function DebtDetailPage({ debt, onBack, onEditTransaction }) {
               <div className="flex gap-0.5">
                 {Array.from({ length: 20 }).map((_, i) => {
                   const filled = i < Math.round((utilPct / 100) * 20)
-                  return <div key={i} className="flex-1 h-1.5 rounded-sm" style={{ backgroundColor: filled ? '#22c55e' : '#e7e5e4' }} />
+                  return <div key={i} className="flex-1 h-1.5 rounded-sm" style={{ backgroundColor: filled ? '#22c55e' : 'rgba(255,255,255,0.08)' }} />
                 })}
               </div>
-              <p className="text-xs text-stone-400 mt-1">{Math.round(utilPct)}% used · {fmt(debt.creditLimit - debt.remaining)} available</p>
+              <p className="text-xs text-[#8F889B] mt-1">{Math.round(utilPct)}% used · {fmt(debt.creditLimit - debt.remaining)} available</p>
             </div>
           )}
 
-          <div className="flex gap-4 mt-3 pt-3 border-t border-stone-100">
-            {debt.apr && <div><p className="text-[10px] text-stone-400 uppercase tracking-wide">APR</p><p className="font-semibold text-stone-700 text-sm">{debt.apr}%</p></div>}
-            {debt.endDate && <div><p className="text-[10px] text-stone-400 uppercase tracking-wide">End date</p><p className="font-semibold text-stone-700 text-sm">{debt.endDate}</p></div>}
-            {debt.last4 && <div><p className="text-[10px] text-stone-400 uppercase tracking-wide">Card</p><p className="font-semibold text-stone-700 text-sm">···{debt.last4}</p></div>}
+          <div className="flex gap-4 mt-3 pt-3 border-t border-[#E9E3F3]">
+            {debt.apr && <div><p className="text-[10px] text-[#8F889B] uppercase tracking-wide">APR</p><p className="font-semibold text-[#7F7198] text-sm">{debt.apr}%</p></div>}
+            {debt.endDate && <div><p className="text-[10px] text-[#8F889B] uppercase tracking-wide">End date</p><p className="font-semibold text-[#7F7198] text-sm">{debt.endDate}</p></div>}
+            {debt.last4 && <div><p className="text-[10px] text-[#8F889B] uppercase tracking-wide">Card</p><p className="font-semibold text-[#7F7198] text-sm">···{debt.last4}</p></div>}
           </div>
         </div>}
 
         {/* Transactions */}
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold text-stone-500 tracking-wide uppercase">Transactions</span>
-          {totalSpent > 0 && <span className="text-xs text-stone-400">-{fmt(totalSpent)} total</span>}
+          <span className="text-xs font-semibold text-[#8F889B] tracking-wide uppercase">Transactions</span>
+          {totalSpent > 0 && <span className="text-xs text-[#8F889B]">-{fmt(totalSpent)} total</span>}
         </div>
 
         {grouped.length === 0 ? (
           <div className="bg-white rounded-2xl p-6 text-center shadow-sm">
-            <p className="text-stone-400 text-sm">No transactions linked to this {isCC ? 'card' : 'loan'} yet</p>
+            <p className="text-[#8F889B] text-sm">No transactions linked to this {isCC ? 'card' : 'loan'} yet</p>
           </div>
         ) : (
           grouped.map(([date, txns]) => {
@@ -165,10 +166,10 @@ export default function DebtDetailPage({ debt, onBack, onEditTransaction }) {
             return (
               <div key={date} className="mb-4">
                 <div className="flex justify-between mb-2">
-                  <span className="text-xs font-semibold text-stone-500">{label}</span>
-                  <span className="text-xs text-stone-400">{txns.length} {txns.length === 1 ? 'entry' : 'entries'}</span>
+                  <span className="text-xs font-semibold text-[#8F889B]">{label}</span>
+                  <span className="text-xs text-[#8F889B]">{txns.length} {txns.length === 1 ? 'entry' : 'entries'}</span>
                 </div>
-                <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+                <div className="bg-white/90 rounded-2xl overflow-hidden border border-[#E9E3F3]">
                   {txns.map((t, i) => {
                     const cat = CATEGORY_ICONS[t.category] || CATEGORY_ICONS.other
                     const isPayment = t.toId === debt.id
@@ -203,7 +204,7 @@ export default function DebtDetailPage({ debt, onBack, onEditTransaction }) {
                     }
 
                     return (
-                      <div key={t.id} className={`relative overflow-hidden ${i < txns.length - 1 ? 'border-b border-stone-100' : ''}`}
+                      <div key={t.id} className={`relative overflow-hidden ${i < txns.length - 1 ? 'border-b border-[#E9E3F3]' : ''}`}
                         onTouchStart={(e) => handlers.onTouchStart(t.id, e)}
                         onTouchMove={(e) => handlers.onTouchMove(t.id, e)}
                         onTouchEnd={() => handlers.onTouchEnd(t.id)}
@@ -212,22 +213,22 @@ export default function DebtDetailPage({ debt, onBack, onEditTransaction }) {
                           if (wasSwipe()) return
                           if (isSwipedOpen) { setSwiped(null); return }
                           onEditTransaction?.(t)
-                        }} className={`flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-stone-50 transition-transform ${isSwipedOpen ? '-translate-x-16' : ''}`}>
+                        }} className={`flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-[#F4F0FB] transition-transform ${isSwipedOpen ? '-translate-x-16' : ''}`}>
                           <div className={`w-10 h-10 rounded-full ${isPayment ? 'bg-emerald-100' : cat.color} flex items-center justify-center text-lg flex-shrink-0`}>
                             {isPayment ? '💳' : cat.emoji}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-stone-800 text-sm">{t.name}</p>
-                            <p className="text-xs text-stone-400">
+                            <p className="font-semibold text-[#24143F] text-sm">{t.name}</p>
+                            <p className="text-xs text-[#8F889B]">
                               {isPayment ? 'Payment' : t.category.charAt(0).toUpperCase() + t.category.slice(1)}
                             </p>
                           </div>
-                          <p className={`font-semibold text-sm ${isPayment || t.type === 'income' ? 'text-emerald-600' : 'text-stone-800'}`}>
+                          <p className={`font-semibold text-sm ${isPayment || t.type === 'income' ? 'text-emerald-600' : 'text-[#24143F]'}`}>
                             {isPayment || t.type === 'income' ? '+' : '-'}{fmt(t.amount)}
                           </p>
                         </div>
                         {isSwipedOpen && (
-                          <button onClick={handleDelete} className="absolute right-0 top-0 h-full bg-red-500 text-white px-4 flex items-center justify-center font-semibold">
+                          <button onClick={handleDelete} className="absolute right-0 top-0 h-full bg-red-900/30 border border-red-500/200 text-white px-4 flex items-center justify-center font-semibold">
                             <Trash2 size={18} />
                           </button>
                         )}
@@ -244,17 +245,17 @@ export default function DebtDetailPage({ debt, onBack, onEditTransaction }) {
       {confirmDelete && createPortal(
         <>
           <div className="fixed inset-0 bg-black/40 z-50 animate-fade-in" onClick={() => setConfirmDelete(false)} />
-          <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
+          <div className="fixed bottom-0 left-0 right-0 z-50 finance-dashboard-bg rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
             <div className="max-w-md mx-auto px-4 pt-4 pb-20">
-              <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-6" />
-              <div className="bg-red-50 rounded-2xl p-4">
-                <p className="text-sm font-semibold text-red-600 mb-4">Delete {isCC ? 'credit card' : isAccount ? 'account' : 'debt'}?</p>
+              <div className="w-10 h-1 bg-slate-600 rounded-full mx-auto mb-6" />
+              <div className="bg-red-900/30 border border-red-500/20 rounded-2xl p-4">
+                <p className="text-sm font-semibold text-red-400 mb-4">Delete {isCC ? 'credit card' : isAccount ? 'account' : 'debt'}?</p>
                 <p className="text-xs text-red-500 mb-4">This will delete <strong>{debt.name}</strong> and all its linked transactions.</p>
                 <div className="flex gap-2">
                   <button onClick={() => setConfirmDelete(false)}
-                    className="flex-1 py-2.5 rounded-xl bg-stone-100 text-stone-600 text-sm font-semibold">Cancel</button>
+                    className="flex-1 py-2.5 rounded-xl bg-[#F2EEF8] text-[#8F889B] text-sm font-semibold">Cancel</button>
                   <button onClick={handleDelete} disabled={deleting}
-                    className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold disabled:opacity-50">Delete</button>
+                    className="flex-1 py-2.5 rounded-xl bg-red-900/30 border border-red-500/200 text-white text-sm font-semibold disabled:opacity-50">Delete</button>
                 </div>
               </div>
             </div>
@@ -300,6 +301,9 @@ function EditDebtSheet({ debt, onClose }) {
         payload.apr = parseFloat(apr) || null
         payload.monthly = parseFloat(monthly) || null
         payload.dueDay = parseInt(dueDay) || null
+      } else if (isAccount) {
+        payload.last4 = last4 || null
+        payload.balance = parseFloat(remaining) || 0
       } else {
         payload.remaining = parseFloat(remaining) || 0
         payload.originalAmount = parseFloat(originalAmount) || null
@@ -308,7 +312,8 @@ function EditDebtSheet({ debt, onClose }) {
         payload.dueDay = parseInt(dueDay) || null
         payload.endDate = endDate || null
       }
-      await updateDocument('debts', debt.id, payload)
+      const collection = isAccount ? 'accounts' : 'debts'
+      await updateDocument(collection, debt.id, payload)
       onClose()
     } finally {
       setSaving(false)
@@ -318,38 +323,38 @@ function EditDebtSheet({ debt, onClose }) {
   return createPortal(
     <>
       <div className="fixed inset-0 bg-black/40 z-50 animate-fade-in" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-slate-50 rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
+      <div className="fixed bottom-0 left-0 right-0 z-50 finance-dashboard-bg rounded-t-3xl max-h-[92vh] overflow-y-auto animate-slide-up">
         <div className="max-w-md mx-auto px-4 pt-4 pb-20">
-          <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-4" />
+          <div className="w-10 h-1 bg-slate-600 rounded-full mx-auto mb-4" />
 
           <div className="flex items-center justify-between mb-5">
-            <button onClick={onClose} className="text-slate-500 font-medium text-[15px]">Cancel</button>
-            <h2 className="text-[17px] font-bold text-slate-800">Edit {isCC ? 'card' : 'debt'}</h2>
+            <button onClick={onClose} className="text-[#8F889B] font-medium text-[15px]">Cancel</button>
+            <h2 className="text-[17px] font-bold text-[#24143F]">Edit {isCC ? 'card' : isAccount ? 'account' : 'debt'}</h2>
             <button onClick={handleSave} disabled={saving || !name}
-              className="text-blue-600 font-semibold text-[15px] disabled:text-slate-300">Save</button>
+              className="text-[#9E76F4] font-semibold text-[15px] disabled:text-[#7F7198]">Save</button>
           </div>
 
           <div className="flex flex-col gap-3">
             <Field label="Name">
               <input type="text" value={name} onChange={e => setName(e.target.value)}
-                className="w-full text-[15px] font-semibold text-slate-800 bg-transparent outline-none placeholder:text-slate-300"
+                className="w-full text-[15px] font-semibold text-[#24143F] bg-transparent outline-none placeholder:text-[#7F7198]"
                 placeholder="e.g. Freedom Card" />
             </Field>
 
-            <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
-              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-2">Issuer</p>
+            <div className="bg-[#F2EEF8] rounded-2xl px-4 py-4 border border-[#E9E3F3]">
+              <p className="text-[10px] font-semibold text-[#8F889B] uppercase tracking-wide mb-2">Issuer</p>
               <IssuerCombobox value={issuer} onChange={setIssuer} />
             </div>
 
-            {isCC && (
-              <Field label="Last 4 digits">
-                <input type="text" maxLength="4" value={last4} onChange={e => setLast4(e.target.value)}
-                  className="w-full text-[15px] font-semibold text-slate-800 bg-transparent outline-none placeholder:text-slate-300"
+            {(isCC || isAccount) && (
+              <Field label="Last 4 digits (optional)">
+                <input type="text" maxLength="4" inputMode="numeric" value={last4} onChange={e => setLast4(e.target.value.replace(/\D/g, ''))}
+                  className="w-full text-[15px] font-semibold tracking-widest text-[#24143F] bg-transparent outline-none placeholder:text-[#7F7198]"
                   placeholder="1234" />
               </Field>
             )}
 
-            <Field label={isCC ? 'Current balance' : 'Remaining'}>
+            <Field label={isCC ? 'Current balance' : isAccount ? 'Balance' : 'Remaining'}>
               <DollarInput value={remaining} onChange={setRemaining} />
             </Field>
 
@@ -359,33 +364,39 @@ function EditDebtSheet({ debt, onClose }) {
               </Field>
             )}
 
-            {!isCC && (
+            {!isCC && !isAccount && (
               <Field label="Original amount">
                 <DollarInput value={originalAmount} onChange={setOriginalAmount} />
               </Field>
             )}
 
-            <Field label="APR (%)">
-              <input type="number" inputMode="decimal" value={apr} onChange={e => setApr(e.target.value)}
-                className="w-full text-[15px] font-semibold text-slate-800 bg-transparent outline-none placeholder:text-slate-300"
-                placeholder="0.00" />
-            </Field>
-
-            <Field label={isCC ? 'Min. monthly payment' : 'Monthly payment'}>
-              <DollarInput value={monthly} onChange={setMonthly} />
-            </Field>
-
-            <Field label="Due day of month">
-              <input type="number" min="1" max="31" inputMode="numeric" value={dueDay} onChange={e => setDueDay(e.target.value)}
-                className="w-full text-[15px] font-semibold text-slate-800 bg-transparent outline-none placeholder:text-slate-300"
-                placeholder="15" />
-            </Field>
-
-            {!isCC && (
-              <Field label="End date">
-                <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
-                  className="w-full text-[15px] font-semibold text-slate-800 bg-transparent outline-none" />
+            {!isAccount && (
+              <Field label="APR (%)">
+                <input type="number" inputMode="decimal" value={apr} onChange={e => setApr(e.target.value)}
+                  className="w-full text-[15px] font-semibold text-[#24143F] bg-transparent outline-none placeholder:text-[#7F7198]"
+                  placeholder="0.00" />
               </Field>
+            )}
+
+            {!isAccount && (
+              <>
+                <Field label={isCC ? 'Min. monthly payment' : 'Monthly payment'}>
+                  <DollarInput value={monthly} onChange={setMonthly} />
+                </Field>
+
+                <Field label="Due day of month">
+                  <input type="number" min="1" max="31" inputMode="numeric" value={dueDay} onChange={e => setDueDay(e.target.value)}
+                    className="w-full text-[15px] font-semibold text-[#24143F] bg-transparent outline-none placeholder:text-[#7F7198]"
+                    placeholder="15" />
+                </Field>
+
+                {!isCC && (
+                  <Field label="End date">
+                    <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
+                      className="w-full text-[15px] font-semibold text-[#24143F] bg-transparent outline-none" />
+                  </Field>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -397,8 +408,8 @@ function EditDebtSheet({ debt, onClose }) {
 
 function Field({ label, children }) {
   return (
-    <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
-      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">{label}</p>
+    <div className="bg-[#F2EEF8] rounded-2xl px-4 py-4 border border-[#E9E3F3]">
+      <p className="text-[10px] font-semibold text-[#8F889B] uppercase tracking-wide mb-1">{label}</p>
       {children}
     </div>
   )
@@ -407,10 +418,10 @@ function Field({ label, children }) {
 function DollarInput({ value, onChange }) {
   return (
     <div className="flex items-center gap-1">
-      <span className="text-2xl font-bold text-slate-300">$</span>
+      <span className="text-2xl font-bold text-[#7F7198]">$</span>
       <input type="number" inputMode="decimal" placeholder="0.00"
         value={value} onChange={e => onChange(e.target.value)}
-        className="flex-1 text-2xl font-bold text-slate-800 bg-transparent outline-none placeholder:text-slate-200" />
+        className="flex-1 text-2xl font-bold text-[#24143F] bg-transparent outline-none placeholder:text-[#7F7198]" />
     </div>
   )
 }

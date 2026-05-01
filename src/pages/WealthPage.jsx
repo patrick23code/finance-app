@@ -1,10 +1,19 @@
 import { useState } from 'react'
-import { Edit2, Trash2 } from 'lucide-react'
+import {
+  Plus,
+  Trash2,
+  X,
+} from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCollection, updateDocument, deleteDocument } from '../hooks/useFirestore'
-import MonkeyLogo from '../components/MonkeyLogo'
 
-const ACCOUNT_ICONS = { checking: '🏦', savings: '💰', cash: '💵' }
+const ACCOUNT_ICONS = {
+  checking: '🏦',
+  savings: '💰',
+  cash: '💵',
+  digital_wallet: '📱',
+  other: '▫',
+}
 
 const CARD_COLORS = [
   { id: 'navy', label: 'Navy', gradient: 'linear-gradient(135deg, #1e3a8a 0%, #1e293b 100%)' },
@@ -18,18 +27,14 @@ const CARD_COLORS = [
   { id: 'rainbow', label: 'Rainbow', gradient: 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 50%, #3b82f6 100%)' },
 ]
 
-const COLOR_MAP = Object.fromEntries(CARD_COLORS.map(c => [c.id, c.gradient]))
-
-const DOLLAR_PATTERN = `data:image/svg+xml;utf8,${encodeURIComponent(`
-<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
-  <text x="20" y="30" font-family="system-ui, sans-serif" font-size="22" font-weight="900" fill="%2310b981" opacity="0.07">$</text>
-  <text x="50" y="65" font-family="system-ui, sans-serif" font-size="18" font-weight="900" fill="%2310b981" opacity="0.05">$</text>
-  <text x="5" y="60" font-family="system-ui, sans-serif" font-size="14" font-weight="900" fill="%2310b981" opacity="0.06">$</text>
-</svg>
-`)}`
+const CARD_GRADIENTS = Object.fromEntries(CARD_COLORS.map(c => [c.id, c.gradient]))
 
 function fmt(n) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n || 0)
+}
+
+function fmtMoney(n) {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0)
 }
 
 export default function WealthPage({ onNavigate, onAccountClick }) {
@@ -37,114 +42,49 @@ export default function WealthPage({ onNavigate, onAccountClick }) {
   const { data: accounts, loading } = useCollection('accounts', user?.uid)
   const [editItem, setEditItem] = useState(null)
 
-  const totalWealth = accounts.reduce((s, a) => s + (a.balance || 0), 0)
+  const availableAccounts = accounts.filter(a => !['credit_card', 'card'].includes(a.type))
+  const totalAvailable = availableAccounts.reduce((s, a) => s + (a.balance || 0), 0)
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-svh bg-slate-50">
-      <div className="text-stone-400">Loading...</div>
+    <div className="flex items-center justify-center min-h-svh finance-dashboard-bg">
+      <div className="text-[#8F889B]">Loading...</div>
     </div>
   )
 
   return (
-    <div
-      className="min-h-svh bg-slate-50 pb-24"
-      style={{
-        backgroundImage: `url("${DOLLAR_PATTERN}")`,
-        backgroundRepeat: 'repeat',
-        backgroundSize: '80px 80px',
-      }}
-    >
-      <div className="max-w-md mx-auto px-5 pt-6">
-        {/* Header with Logo */}
-        <div className="flex items-center justify-center mb-6">
-          <MonkeyLogo size={42} className="text-slate-900" />
+    <div className="min-h-svh finance-dashboard-bg pb-32">
+      <div className="max-w-md mx-auto px-5 pt-8 relative z-10">
+        <TotalBalanceCard total={totalAvailable} />
+
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-[22px] font-black text-[#152347] tracking-tight">Bank accounts and cards</h1>
+          <button
+            onClick={() => onNavigate('add')}
+            className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-[#17307A] shadow-[0_8px_18px_rgba(49,28,96,0.10)] active:scale-95 transition-transform"
+            aria-label="Add account"
+          >
+            <Plus size={24} strokeWidth={2.5} />
+          </button>
         </div>
 
-        <p className="text-slate-500 text-sm mb-1 font-medium">Net worth</p>
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-6">Wealth</h1>
-
-        {/* Total — Green Gradient */}
-        <div
-          className="rounded-2xl p-6 mb-4 relative overflow-hidden animate-scale-in"
-          style={{
-            background: 'linear-gradient(135deg, #10B981 0%, #059669 50%, #047857 100%)',
-            boxShadow: '0 20px 40px -12px rgba(16, 185, 129, 0.4)',
-          }}
-        >
-          {/* Decorative $ patterns */}
-          <div className="absolute -top-4 -right-4 text-white/10 text-9xl font-black select-none pointer-events-none">$</div>
-          <div className="absolute -bottom-8 -left-2 text-white/5 text-8xl font-black select-none pointer-events-none">$</div>
-
-          <div className="relative">
-            <p className="text-emerald-50 text-[11px] font-bold uppercase tracking-widest mb-2">Total balance</p>
-            <p className="text-[44px] font-bold text-white tracking-tight leading-none mb-2">{fmt(totalWealth)}</p>
-            <p className="text-emerald-100 text-xs font-medium">Across {accounts.length} account{accounts.length !== 1 ? 's' : ''}</p>
-          </div>
-        </div>
-
-        {/* Accounts list */}
         {accounts.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-slate-400 font-medium">No accounts yet</p>
-            <p className="text-slate-400 text-sm mt-1">Add an account from the Add tab</p>
-            <button
-              onClick={() => onNavigate('add')}
-              className="mt-4 bg-blue-600 text-white px-6 py-3 rounded-2xl text-sm font-semibold"
-              style={{ boxShadow: '0 8px 20px -4px rgba(37, 99, 235, 0.45)' }}
-            >
-              Add account
-            </button>
-          </div>
+          <button
+            onClick={() => onNavigate('add')}
+            className="w-full rounded-[18px] bg-white/86 border border-[#E9E3F3] p-8 text-center shadow-[0_4px_14px_rgba(27,24,46,0.10)] mb-5 active:scale-[0.99] transition-transform"
+          >
+            <p className="text-[#152347] font-black">No cards yet</p>
+            <p className="text-[#7F7198] text-sm mt-1">Tap to add your first account</p>
+          </button>
         ) : (
-          <div className="flex flex-col gap-4">
-            {accounts.map((a, idx) => {
-              const gradient = COLOR_MAP[a.color] || COLOR_MAP.navy
-              return (
-                <div
-                  key={a.id}
-                  onClick={() => onAccountClick(a)}
-                  className="rounded-2xl p-5 cursor-pointer active:scale-[0.98] transition-transform animate-scale-in relative overflow-hidden"
-                  style={{
-                    background: gradient,
-                    aspectRatio: '1.586 / 1',
-                    boxShadow: '0 12px 32px -8px rgba(0,0,0,0.3)',
-                    animationDelay: `${idx * 60}ms`,
-                  }}
-                >
-                  {/* Decorative chip */}
-                  <div className="absolute top-5 right-5 w-10 h-7 rounded-md bg-white/20 border border-white/30" />
-                  {/* Decorative shine */}
-                  <div className="absolute -top-12 -left-12 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
-
-                  <div className="relative flex flex-col h-full justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-2xl">{ACCOUNT_ICONS[a.type] || '🏦'}</span>
-                        {a.bank && <p className="text-[10px] font-bold text-white/80 uppercase tracking-widest">{a.bank}</p>}
-                      </div>
-                      <p className="text-white text-lg font-bold tracking-tight">{a.name}</p>
-                    </div>
-
-                    {a.last4 && (
-                      <p className="text-white/90 text-base font-mono tracking-[0.3em] my-2">•••• •••• •••• {a.last4}</p>
-                    )}
-
-                    <div className="flex items-end justify-between">
-                      <div>
-                        <p className="text-[10px] font-semibold text-white/60 uppercase tracking-widest mb-0.5">Balance</p>
-                        <p className="text-2xl font-bold text-white tracking-tight">{fmt(a.balance)}</p>
-                      </div>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setEditItem(a) }}
-                        className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center active:scale-90 transition-transform"
-                      >
-                        <Edit2 size={16} className="text-white" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
+          <div className="flex flex-col gap-3 mb-6">
+            {accounts.map((a, idx) => (
+              <WalletCard
+                key={a.id}
+                account={a}
+                index={idx}
+                onClick={() => setEditItem(a)}
+              />
+            ))}
           </div>
         )}
 
@@ -152,7 +92,6 @@ export default function WealthPage({ onNavigate, onAccountClick }) {
           <AccountEditSheet
             account={editItem}
             onClose={() => setEditItem(null)}
-            userId={user.uid}
           />
         )}
       </div>
@@ -160,7 +99,68 @@ export default function WealthPage({ onNavigate, onAccountClick }) {
   )
 }
 
-function AccountEditSheet({ account, onClose, userId }) {
+function TotalBalanceCard({ total }) {
+  return (
+    <div className="relative rounded-[24px] p-6 mb-8 overflow-hidden animate-scale-in bg-gradient-to-br from-[#12D18E] via-[#0BAA6F] to-[#04784F] shadow-[0_22px_44px_rgba(6,120,79,0.28)]">
+      <div className="absolute -top-10 -right-3 text-white/12 text-[140px] font-black leading-none select-none pointer-events-none">$</div>
+      <div className="absolute -bottom-12 -left-4 text-white/10 text-[120px] font-black leading-none select-none pointer-events-none">$</div>
+      <div className="absolute top-5 right-16 text-white/10 text-[54px] font-black leading-none select-none pointer-events-none">$</div>
+
+      <div className="relative">
+        <p className="text-white/82 text-[11px] font-black uppercase tracking-[0.22em] mb-3">Total available balance</p>
+        <p
+          className="text-[46px] font-black text-white leading-none"
+          style={{
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            letterSpacing: '-0.04em',
+            textShadow: '2px 0 #7CFFCE, -2px 0 rgba(24,11,61,0.35), 0 10px 26px rgba(0,0,0,0.18)',
+          }}
+        >
+          {fmt(total)}
+        </p>
+        <p className="text-white/74 text-[12px] font-bold mt-3">Cash, bank accounts, and wallets only.</p>
+      </div>
+    </div>
+  )
+}
+
+
+function WalletCard({ account, index, onClick }) {
+  const gradient = CARD_GRADIENTS[account.color] || CARD_GRADIENTS.purple
+  const brand = account.bank || account.name || 'Card'
+  const digits = account.last4 ? account.last4.padStart(4, '•') : '••••'
+
+  return (
+    <button
+      onClick={onClick}
+      className="relative w-full h-[148px] rounded-[18px] border border-white/40 shadow-[0_10px_24px_rgba(27,24,46,0.16)] overflow-hidden text-left active:scale-[0.985] transition-transform animate-scale-in"
+      style={{ animationDelay: `${index * 60}ms`, background: gradient }}
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_15%,rgba(255,255,255,0.28),transparent_32%),linear-gradient(180deg,rgba(255,255,255,0.16),transparent)]" />
+
+      <div className="absolute inset-0 p-5 flex flex-col justify-between">
+        <div>
+          <p className="text-[22px] font-black tracking-tight text-white drop-shadow-sm">{brand}</p>
+          <p className="text-[12px] font-bold text-white/75 mt-1">{account.name}</p>
+        </div>
+
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="text-[14px] tracking-[0.3em] text-white font-black">•• {digits.slice(-4)}</p>
+            <p className="text-[10px] font-bold text-white/75 mt-1 uppercase">{ACCOUNT_ICONS[account.type] || '🏦'} {account.type || 'account'}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-white/70 text-[10px] font-bold uppercase">Balance</p>
+            <p className="text-white text-[18px] font-black">{fmt(account.balance || 0)}</p>
+          </div>
+        </div>
+      </div>
+    </button>
+  )
+}
+
+
+function AccountEditSheet({ account, onClose }) {
   const [name, setName] = useState(account.name)
   const [bank, setBank] = useState(account.bank || '')
   const [balance, setBalance] = useState(String(account.balance || 0))
@@ -198,60 +198,60 @@ function AccountEditSheet({ account, onClose, userId }) {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl max-h-[92vh] overflow-y-auto">
+      <div className="fixed inset-0 bg-black/60 z-[70]" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-[70] bg-white/95 rounded-t-3xl max-h-[92vh] overflow-y-auto">
         <div className="max-w-md mx-auto px-4 pt-4 pb-20">
-          <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-4" />
+          <div className="w-10 h-1 bg-[#D8D0E8] rounded-full mx-auto mb-4" />
 
           <div className="flex items-center justify-between mb-5">
-            <button onClick={onClose} className="text-stone-500 font-medium text-[15px]">Cancel</button>
-            <h2 className="text-[17px] font-bold text-stone-800">Edit account</h2>
+            <button onClick={onClose} className="text-[#7F7198] font-medium text-[15px]">Cancel</button>
+            <h2 className="text-[17px] font-bold text-[#24143F]">Edit account</h2>
             <button onClick={handleSave} disabled={saving || !name}
-              className="text-stone-800 font-semibold text-[15px] disabled:text-stone-300">
+              className="text-[#9E76F4] font-semibold text-[15px] disabled:text-[#7F7198]">
               Save
             </button>
           </div>
 
           <div className="flex flex-col gap-3">
-            <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
-              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">Name</p>
+            <div className="bg-[#F2EEF8] rounded-2xl px-4 py-4 border border-[#E9E3F3]">
+              <p className="text-[10px] font-semibold text-[#8F889B] uppercase tracking-wide mb-1">Name</p>
               <input type="text" placeholder="e.g. Chase Debit"
                 value={name} onChange={e => setName(e.target.value)}
-                className="w-full text-[15px] font-semibold text-stone-800 bg-transparent outline-none placeholder:text-stone-300" />
+                className="w-full text-[15px] font-semibold text-[#24143F] bg-transparent outline-none placeholder:text-[#7F7198]" />
             </div>
 
-            <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
-              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">Bank (optional)</p>
+            <div className="bg-[#F2EEF8] rounded-2xl px-4 py-4 border border-[#E9E3F3]">
+              <p className="text-[10px] font-semibold text-[#8F889B] uppercase tracking-wide mb-1">Bank (optional)</p>
               <input type="text" placeholder="e.g. Chase"
                 value={bank} onChange={e => setBank(e.target.value)}
-                className="w-full text-[15px] font-semibold text-stone-800 bg-transparent outline-none placeholder:text-stone-300" />
+                className="w-full text-[15px] font-semibold text-[#24143F] bg-transparent outline-none placeholder:text-[#7F7198]" />
             </div>
 
-            <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
-              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">Balance</p>
+            <div className="bg-[#F2EEF8] rounded-2xl px-4 py-4 border border-[#E9E3F3]">
+              <p className="text-[10px] font-semibold text-[#8F889B] uppercase tracking-wide mb-1">Balance</p>
               <div className="flex items-center gap-1">
-                <span className="text-2xl font-bold text-stone-300">$</span>
+                <span className="text-2xl font-bold text-[#7F7198]">$</span>
                 <input type="number" inputMode="decimal" placeholder="0.00"
                   value={balance} onChange={e => setBalance(e.target.value)}
-                  className="flex-1 text-2xl font-bold text-stone-800 bg-transparent outline-none placeholder:text-stone-200" />
+                  className="flex-1 text-2xl font-bold text-[#24143F] bg-transparent outline-none placeholder:text-[#4B376E]" />
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
-              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-1">Last 4 digits</p>
+            <div className="bg-[#F2EEF8] rounded-2xl px-4 py-4 border border-[#E9E3F3]">
+              <p className="text-[10px] font-semibold text-[#8F889B] uppercase tracking-wide mb-1">Last 4 digits</p>
               <input type="text" maxLength="4" placeholder="1234"
                 value={last4} onChange={e => setLast4(e.target.value.replace(/\D/g, ''))}
-                className="w-full text-[15px] font-semibold tracking-widest text-stone-800 bg-transparent outline-none placeholder:text-stone-300" />
+                className="w-full text-[15px] font-semibold tracking-widest text-[#24143F] bg-transparent outline-none placeholder:text-[#7F7198]" />
             </div>
 
-            <div className="bg-white rounded-2xl px-4 py-4 shadow-sm">
-              <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide mb-3">Card color</p>
+            <div className="bg-[#F2EEF8] rounded-2xl px-4 py-4 border border-[#E9E3F3]">
+              <p className="text-[10px] font-semibold text-[#8F889B] uppercase tracking-wide mb-3">Card color</p>
               <div className="grid grid-cols-3 gap-2">
                 {CARD_COLORS.map(c => (
                   <button
                     key={c.id}
                     onClick={() => setColor(c.id)}
-                    className={`h-12 rounded-xl active:scale-95 transition-transform ${color === c.id ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`}
+                    className={`h-12 rounded-xl active:scale-95 transition-transform ${color === c.id ? 'ring-2 ring-offset-2 ring-[#9E76F4]' : ''}`}
                     style={{ background: c.gradient }}
                   >
                     {color === c.id && <span className="text-white text-xs font-bold">✓</span>}
@@ -262,16 +262,16 @@ function AccountEditSheet({ account, onClose, userId }) {
 
             {!confirmDelete ? (
               <button onClick={() => setConfirmDelete(true)}
-                className="w-full py-3 rounded-2xl border border-red-200 text-red-500 text-sm font-semibold flex items-center justify-center gap-2">
+                className="w-full py-3 rounded-2xl border border-red-500/30 text-red-400 text-sm font-semibold flex items-center justify-center gap-2">
                 <Trash2 size={16} />
                 Delete account
               </button>
             ) : (
-              <div className="bg-red-50 rounded-2xl p-4 flex flex-col gap-2">
-                <p className="text-sm font-semibold text-red-600 text-center">Delete this account?</p>
+              <div className="bg-red-50 rounded-2xl p-4 flex flex-col gap-2 border border-red-200">
+                <p className="text-sm font-semibold text-red-500 text-center">Delete this account?</p>
                 <div className="flex gap-2">
                   <button onClick={() => setConfirmDelete(false)}
-                    className="flex-1 py-2.5 rounded-xl bg-stone-100 text-stone-600 text-sm font-semibold">Cancel</button>
+                    className="flex-1 py-2.5 rounded-xl bg-[#F2EEF8] text-[#7F7198] text-sm font-semibold">Cancel</button>
                   <button onClick={handleDelete} disabled={saving}
                     className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold disabled:opacity-50">Delete</button>
                 </div>

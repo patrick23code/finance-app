@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { X, ChevronRight, Trash2, RefreshCcw, ArrowLeftRight } from 'lucide-react'
+import { X, ChevronRight, Trash2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useCollection, updateDocument, deleteDocument } from '../hooks/useFirestore'
 import { useCategories } from '../hooks/useCategories'
@@ -20,7 +20,7 @@ export default function EditTransactionSheet({ transaction, onClose }) {
   const [txNote, setTxNote] = useState(transaction.note || '')
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
-  const [activeSheet, setActiveSheet] = useState(null) // 'category' | 'account' | 'type' | 'date' | 'amount'
+  const [activeSheet, setActiveSheet] = useState(null)
 
   const amountRef = useRef(null)
 
@@ -127,23 +127,21 @@ export default function EditTransactionSheet({ transaction, onClose }) {
 
   return (
     <>
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/60 z-50" onClick={onClose} />
 
-      {/* Full-screen sheet */}
       <div className="fixed inset-0 z-50 flex flex-col animate-slide-up" style={{ top: '5%' }}>
-        <div className="relative bg-white rounded-t-3xl flex-1 overflow-y-auto mx-auto w-full max-w-md shadow-2xl">
+        <div className="relative bg-white/90 rounded-t-3xl flex-1 overflow-y-auto mx-auto w-full max-w-md shadow-2xl">
 
           {/* Header */}
-          <div className="sticky top-0 bg-white z-10 flex items-center justify-between px-5 py-4 border-b border-stone-100">
-            <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-full bg-stone-100 active:bg-stone-200 transition-colors">
-              <X size={18} className="text-stone-600" />
+          <div className="sticky top-0 bg-white/90 z-10 flex items-center justify-between px-5 py-4 border-b border-[#E9E3F3]">
+            <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-full bg-[#F2EEF8] active:bg-[#E9E3F3] transition-colors">
+              <X size={18} className="text-[#4B376E]" />
             </button>
-            <h2 className="text-[17px] font-bold text-stone-800">Transaction</h2>
+            <h2 className="text-[17px] font-bold text-[#24143F]">Transaction</h2>
             <button
               onClick={handleSave}
               disabled={saving || !txAmount || !txCategory}
-              className="px-4 py-1.5 rounded-full bg-blue-500 text-white text-sm font-semibold disabled:opacity-40 active:bg-blue-600 transition-colors"
+              className="px-4 py-1.5 rounded-full bg-[#180B3D] text-white text-sm font-semibold disabled:opacity-40 active:bg-indigo-700 transition-colors"
             >
               Save
             </button>
@@ -154,7 +152,7 @@ export default function EditTransactionSheet({ transaction, onClose }) {
             <button
               onClick={() => { setActiveSheet('amount'); setTimeout(() => amountRef.current?.focus(), 100) }}
               className="text-5xl font-bold tracking-tight"
-              style={{ color: isIncome ? '#16a34a' : '#ef4444' }}
+              style={{ color: isIncome ? '#34d399' : '#f87171' }}
             >
               {isIncome ? '+' : '-'}${amountNum.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
             </button>
@@ -165,98 +163,91 @@ export default function EditTransactionSheet({ transaction, onClose }) {
               value={txAmount}
               onChange={e => setTxAmount(e.target.value)}
               onBlur={() => setActiveSheet(null)}
-              className={`mt-2 text-center text-lg font-semibold bg-stone-50 rounded-2xl px-4 py-2 w-40 outline-none border-2 transition-all ${activeSheet === 'amount' ? 'border-blue-400' : 'border-transparent'}`}
+              className={`mt-2 text-center text-lg font-semibold bg-[#F2EEF8] text-[#24143F] rounded-2xl px-4 py-2 w-40 outline-none border-2 transition-all ${activeSheet === 'amount' ? 'border-[#9E76F4]' : 'border-transparent'}`}
               placeholder="0.00"
             />
           </div>
 
           {/* Detail Rows */}
-          <div className="mx-4 bg-white rounded-2xl border border-stone-100 overflow-hidden shadow-sm mb-4">
+          <div className="mx-4 bg-white/90 rounded-2xl border border-[#E9E3F3] overflow-hidden mb-4">
 
-            {/* Name */}
             <DetailRow label="Name">
               <input
                 type="text"
                 value={txName}
                 onChange={e => setTxName(e.target.value)}
                 placeholder="Transaction name"
-                className="text-right text-[15px] font-semibold text-stone-800 bg-transparent outline-none placeholder:text-stone-300 w-full max-w-[200px]"
+                className="text-right text-[15px] font-semibold text-[#24143F] bg-transparent outline-none placeholder:text-[#7F7198] w-full max-w-[200px]"
               />
             </DetailRow>
 
             <Divider />
 
-            {/* Type */}
             <DetailRow label="Type" onPress={() => setActiveSheet('type')}>
               <div className="flex items-center gap-1.5">
-                <span className={`text-sm font-semibold ${isIncome ? 'text-emerald-600' : 'text-stone-700'}`}>
+                <span className={`text-sm font-semibold ${isIncome ? 'text-emerald-400' : 'text-[#4B376E]'}`}>
                   {isIncome ? 'Income' : 'Expense'}
                 </span>
-                <ChevronRight size={14} className="text-stone-400" />
+                <ChevronRight size={14} className="text-[#8F889B]" />
               </div>
             </DetailRow>
 
             <Divider />
 
-            {/* Category */}
             <DetailRow label="Category" onPress={() => setActiveSheet('category')}>
               <div className="flex items-center gap-2">
                 <span className="text-base">{currentCat.emoji}</span>
-                <span className="text-[15px] font-semibold text-stone-700 bg-stone-100 px-3 py-1 rounded-full">
+                <span className="text-[15px] font-semibold text-[#4B376E] bg-[#F2EEF8] px-3 py-1 rounded-full">
                   {currentCat.label}
                 </span>
-                <ChevronRight size={14} className="text-stone-400" />
+                <ChevronRight size={14} className="text-[#8F889B]" />
               </div>
             </DetailRow>
 
             <Divider />
 
-            {/* Account */}
             <DetailRow label="Account" onPress={() => setActiveSheet('account')}>
               <div className="flex items-center gap-1.5">
                 {currentAccount ? (
-                  <span className="text-[15px] font-semibold text-stone-700 bg-stone-100 px-3 py-1 rounded-full max-w-[160px] truncate">
+                  <span className="text-[15px] font-semibold text-[#4B376E] bg-[#F2EEF8] px-3 py-1 rounded-full max-w-[160px] truncate">
                     {currentAccount.display}
                   </span>
                 ) : (
-                  <span className="text-[15px] font-semibold text-stone-400 bg-stone-100 px-3 py-1 rounded-full">
+                  <span className="text-[15px] font-semibold text-[#8F889B] bg-[#F2EEF8] px-3 py-1 rounded-full">
                     None
                   </span>
                 )}
-                <ChevronRight size={14} className="text-stone-400" />
+                <ChevronRight size={14} className="text-[#8F889B]" />
               </div>
             </DetailRow>
 
             <Divider />
 
-            {/* Recorder */}
             <DetailRow label="Recorder">
-              <span className="text-[15px] font-semibold text-stone-700 bg-stone-100 px-3 py-1 rounded-full max-w-[180px] truncate">
+              <span className="text-[15px] font-semibold text-[#4B376E] bg-[#F2EEF8] px-3 py-1 rounded-full max-w-[180px] truncate">
                 {user?.displayName || user?.email?.split('@')[0] || 'You'}
               </span>
             </DetailRow>
 
             <Divider />
 
-            {/* Date */}
             <DetailRow label="Date" onPress={() => setActiveSheet('date')}>
               <div className="flex items-center gap-1.5">
-                <span className="text-[15px] font-semibold text-stone-700 bg-stone-100 px-3 py-1 rounded-full">
+                <span className="text-[15px] font-semibold text-[#4B376E] bg-[#F2EEF8] px-3 py-1 rounded-full">
                   {formatDateDisplay(txDate)}
                 </span>
-                <ChevronRight size={14} className="text-stone-400" />
+                <ChevronRight size={14} className="text-[#8F889B]" />
               </div>
             </DetailRow>
           </div>
 
-          {/* Date Input (hidden, triggered when date row tapped) */}
           {activeSheet === 'date' && (
             <div className="mx-4 mb-4">
               <input
                 type="date"
                 value={txDate}
                 onChange={e => { setTxDate(e.target.value); setActiveSheet(null) }}
-                className="w-full bg-white rounded-2xl px-4 py-3 text-[15px] font-semibold text-stone-800 border border-stone-200 outline-none shadow-sm"
+                className="w-full bg-[#F2EEF8] rounded-2xl px-4 py-3 text-[15px] font-semibold text-[#24143F] border border-[#E9E3F3] outline-none"
                 autoFocus
               />
             </div>
@@ -269,34 +260,22 @@ export default function EditTransactionSheet({ transaction, onClose }) {
               onChange={e => setTxNote(e.target.value)}
               placeholder="Note..."
               rows={2}
-              className="w-full bg-stone-50 rounded-2xl px-4 py-3 text-[15px] text-stone-800 border border-stone-100 outline-none resize-none placeholder:text-stone-400 shadow-sm"
+              className="w-full bg-[#F2EEF8] rounded-2xl px-4 py-3 text-[15px] text-[#24143F] border border-[#E9E3F3] outline-none resize-none placeholder:text-[#7F7198]"
             />
           </div>
 
           {/* Action Buttons */}
           <div className="flex items-center justify-center gap-10 pb-10 pt-4">
             {!confirmDelete ? (
-              <ActionButton
-                icon={<Trash2 size={22} />}
-                label="Delete"
-                color="bg-red-500"
-                onClick={() => setConfirmDelete(true)}
-              />
+              <ActionButton icon={<Trash2 size={22} />} label="Delete" color="bg-red-500" onClick={() => setConfirmDelete(true)} />
             ) : (
               <div className="flex flex-col items-center gap-3 w-full px-6">
-                <p className="text-sm font-semibold text-red-600 text-center">Delete this transaction?</p>
+                <p className="text-sm font-semibold text-red-400 text-center">Delete this transaction?</p>
                 <div className="flex gap-3 w-full">
-                  <button
-                    onClick={() => setConfirmDelete(false)}
-                    className="flex-1 py-3 rounded-2xl bg-stone-100 text-stone-600 text-sm font-semibold"
-                  >
+                  <button onClick={() => setConfirmDelete(false)} className="flex-1 py-3 rounded-2xl bg-[#F2EEF8] text-[#7F7198] text-sm font-semibold">
                     Cancel
                   </button>
-                  <button
-                    onClick={handleDelete}
-                    disabled={saving}
-                    className="flex-1 py-3 rounded-2xl bg-red-500 text-white text-sm font-semibold disabled:opacity-50"
-                  >
+                  <button onClick={handleDelete} disabled={saving} className="flex-1 py-3 rounded-2xl bg-red-500 text-white text-sm font-semibold disabled:opacity-50">
                     Delete
                   </button>
                 </div>
@@ -306,23 +285,23 @@ export default function EditTransactionSheet({ transaction, onClose }) {
         </div>
       </div>
 
-      {/* Category Picker Sheet */}
+      {/* Category Picker */}
       {activeSheet === 'category' && (
         <>
-          <div className="fixed inset-0 bg-black/40 z-[60] animate-fade-in" onClick={() => setActiveSheet(null)} />
-          <div className="fixed bottom-0 left-0 right-0 z-[60] bg-white rounded-t-3xl max-h-[75vh] overflow-y-auto animate-slide-up">
+          <div className="fixed inset-0 bg-black/60 z-[60] animate-fade-in" onClick={() => setActiveSheet(null)} />
+          <div className="fixed bottom-0 left-0 right-0 z-[60] bg-white/90 rounded-t-3xl max-h-[75vh] overflow-y-auto animate-slide-up">
             <div className="max-w-md mx-auto px-4 pt-4 pb-10">
-              <div className="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-4" />
-              <h3 className="text-[17px] font-bold text-stone-800 text-center mb-4">Category</h3>
+              <div className="w-10 h-1 bg-slate-600 rounded-full mx-auto mb-4" />
+              <h3 className="text-[17px] font-bold text-[#24143F] text-center mb-4">Category</h3>
               <div className="grid grid-cols-4 gap-2">
                 {categories.map(c => (
                   <button
                     key={c.id}
                     onClick={() => { setTxCategory(c.id); setActiveSheet(null) }}
-                    className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl transition-all active:scale-95 ${txCategory === c.id ? `${c.color} shadow-md` : 'bg-stone-50 hover:bg-stone-100'}`}
+                    className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl transition-all active:scale-95 ${txCategory === c.id ? `${c.color} shadow-md` : 'bg-[#F2EEF8] hover:bg-[#E9E3F3]'}`}
                   >
                     <span className="text-2xl">{c.emoji}</span>
-                    <span className={`text-[10px] font-semibold leading-tight text-center ${txCategory === c.id ? 'text-white' : 'text-stone-500'}`}>
+                    <span className={`text-[10px] font-semibold leading-tight text-center ${txCategory === c.id ? 'text-white' : 'text-[#7F7198]'}`}>
                       {c.label}
                     </span>
                   </button>
@@ -333,53 +312,47 @@ export default function EditTransactionSheet({ transaction, onClose }) {
         </>
       )}
 
-      {/* Type Picker Sheet */}
+      {/* Type Picker */}
       {activeSheet === 'type' && (
         <>
-          <div className="fixed inset-0 bg-black/40 z-[60] animate-fade-in" onClick={() => setActiveSheet(null)} />
-          <div className="fixed bottom-0 left-0 right-0 z-[60] bg-white rounded-t-3xl animate-slide-up">
+          <div className="fixed inset-0 bg-black/60 z-[60] animate-fade-in" onClick={() => setActiveSheet(null)} />
+          <div className="fixed bottom-0 left-0 right-0 z-[60] bg-white/90 rounded-t-3xl animate-slide-up">
             <div className="max-w-md mx-auto px-4 pt-4 pb-10">
-              <div className="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-4" />
-              <h3 className="text-[17px] font-bold text-stone-800 text-center mb-4">Type</h3>
+              <div className="w-10 h-1 bg-slate-600 rounded-full mx-auto mb-4" />
+              <h3 className="text-[17px] font-bold text-[#24143F] text-center mb-4">Type</h3>
               <div className="flex gap-3">
                 <button
                   onClick={() => { setTxType('expense'); setTxCategory(''); setActiveSheet(null) }}
-                  className={`flex-1 py-3 rounded-2xl text-sm font-semibold transition-all ${txType === 'expense' ? 'bg-stone-800 text-white' : 'bg-stone-100 text-stone-600'}`}
-                >
-                  Expense
-                </button>
+                  className={`flex-1 py-3 rounded-2xl text-sm font-semibold transition-all ${txType === 'expense' ? 'bg-[#180B3D] text-white' : 'bg-[#F2EEF8] text-[#7F7198]'}`}
+                >Expense</button>
                 <button
                   onClick={() => { setTxType('income'); setTxCategory(''); setActiveSheet(null) }}
-                  className={`flex-1 py-3 rounded-2xl text-sm font-semibold transition-all ${txType === 'income' ? 'bg-stone-800 text-white' : 'bg-stone-100 text-stone-600'}`}
-                >
-                  Income
-                </button>
+                  className={`flex-1 py-3 rounded-2xl text-sm font-semibold transition-all ${txType === 'income' ? 'bg-[#180B3D] text-white' : 'bg-[#F2EEF8] text-[#7F7198]'}`}
+                >Income</button>
               </div>
             </div>
           </div>
         </>
       )}
 
-      {/* Account Picker Sheet */}
+      {/* Account Picker */}
       {activeSheet === 'account' && (
         <>
-          <div className="fixed inset-0 bg-black/40 z-[60] animate-fade-in" onClick={() => setActiveSheet(null)} />
-          <div className="fixed bottom-0 left-0 right-0 z-[60] bg-white rounded-t-3xl animate-slide-up">
+          <div className="fixed inset-0 bg-black/60 z-[60] animate-fade-in" onClick={() => setActiveSheet(null)} />
+          <div className="fixed bottom-0 left-0 right-0 z-[60] bg-white/90 rounded-t-3xl animate-slide-up">
             <div className="max-w-md mx-auto px-4 pt-4 pb-10">
-              <div className="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-4" />
-              <h3 className="text-[17px] font-bold text-stone-800 text-center mb-4">Account</h3>
+              <div className="w-10 h-1 bg-slate-600 rounded-full mx-auto mb-4" />
+              <h3 className="text-[17px] font-bold text-[#24143F] text-center mb-4">Account</h3>
               <div className="flex flex-col gap-2">
                 <button
                   onClick={() => { setTxCard(''); setActiveSheet(null) }}
-                  className={`w-full py-3 rounded-2xl text-sm font-semibold transition-all ${!txCard ? 'bg-stone-800 text-white' : 'bg-stone-100 text-stone-600'}`}
-                >
-                  None
-                </button>
+                  className={`w-full py-3 rounded-2xl text-sm font-semibold transition-all ${!txCard ? 'bg-[#180B3D] text-white' : 'bg-[#F2EEF8] text-[#7F7198]'}`}
+                >None</button>
                 {payFromOptions.map(o => (
                   <button
                     key={o.id}
                     onClick={() => { setTxCard(o.label); setActiveSheet(null) }}
-                    className={`w-full py-3 px-4 rounded-2xl text-sm font-semibold transition-all flex items-center gap-2 ${txCard === o.label ? 'bg-stone-800 text-white' : 'bg-stone-100 text-stone-700'}`}
+                    className={`w-full py-3 px-4 rounded-2xl text-sm font-semibold transition-all flex items-center gap-2 ${txCard === o.label ? 'bg-[#180B3D] text-white' : 'bg-[#F2EEF8] text-[#4B376E]'}`}
                   >
                     {o.sourceType === 'account' && <span>{ACCOUNT_ICONS[o.data.type] || '🏦'}</span>}
                     {o.sourceType === 'card' && <span>💳</span>}
@@ -398,25 +371,22 @@ export default function EditTransactionSheet({ transaction, onClose }) {
 function DetailRow({ label, children, onPress }) {
   if (onPress) {
     return (
-      <button
-        onClick={onPress}
-        className="w-full flex items-center justify-between px-4 py-3.5 active:bg-stone-50 transition-colors"
-      >
-        <span className="text-[15px] text-stone-500">{label}</span>
+      <button onClick={onPress} className="w-full flex items-center justify-between px-4 py-3.5 active:bg-[#F4F0FB] transition-colors">
+        <span className="text-[15px] text-[#7F7198]">{label}</span>
         <div className="flex items-center">{children}</div>
       </button>
     )
   }
   return (
     <div className="flex items-center justify-between px-4 py-3.5">
-      <span className="text-[15px] text-stone-500">{label}</span>
+      <span className="text-[15px] text-[#7F7198]">{label}</span>
       <div className="flex items-center">{children}</div>
     </div>
   )
 }
 
 function Divider() {
-  return <div className="h-px bg-stone-100 mx-4" />
+  return <div className="h-px bg-[#E9E3F3] mx-4" />
 }
 
 function ActionButton({ icon, label, color, onClick }) {
@@ -425,7 +395,7 @@ function ActionButton({ icon, label, color, onClick }) {
       <div className={`w-14 h-14 rounded-full ${color} flex items-center justify-center shadow-md active:scale-95 transition-transform`}>
         <span className="text-white">{icon}</span>
       </div>
-      <span className="text-xs font-medium text-stone-500">{label}</span>
+      <span className="text-xs font-medium text-[#7F7198]">{label}</span>
     </button>
   )
 }

@@ -7,8 +7,8 @@
   }
   body {
     margin: 0;
-    background-color: #E8E4DE;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
+    background-color: #a98de9;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     overscroll-behavior: none;
     -webkit-font-smoothing: antialiased;
   }
@@ -16,6 +16,48 @@
     width: 100%;
     min-height: 100svh;
   }
+}
+
+.finance-dashboard-bg {
+  position: relative;
+  overflow-x: hidden;
+  background:
+    linear-gradient(180deg, rgba(169, 141, 233, 0.96) 0%, rgba(244, 240, 251, 0.98) 48%, #f7f4fb 100%);
+}
+
+.finance-dashboard-bg::before,
+.finance-dashboard-bg::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.finance-dashboard-bg::before {
+  background:
+    linear-gradient(32deg, transparent 0 38%, rgba(255,255,255,0.9) 38% 43%, transparent 43% 100%) 74% 4% / 220px 220px no-repeat,
+    linear-gradient(-38deg, transparent 0 42%, rgba(255,255,255,0.88) 42% 47%, transparent 47% 100%) 104% 18% / 230px 230px no-repeat,
+    radial-gradient(circle at 0% 2%, transparent 0 48px, rgba(255,255,255,0.86) 49px 64px, transparent 65px);
+  opacity: 0.7;
+}
+
+.finance-dashboard-bg::after {
+  background:
+    radial-gradient(circle at 8% 92%, rgba(40, 28, 78, 0.10) 0 2px, transparent 3px) 0 0 / 74px 74px,
+    radial-gradient(circle at 8% 92%, rgba(40, 28, 78, 0.06) 0 18px, transparent 19px) 0 0 / 74px 74px;
+  mask-image: linear-gradient(to bottom, transparent 0%, transparent 56%, black 100%);
+}
+
+.bottom-tab-shell {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  z-index: 50;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  overflow: visible;
 }
 
 /* ── Animations ── */
