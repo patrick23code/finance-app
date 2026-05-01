@@ -11,6 +11,15 @@ const ALL_CATEGORIES = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES]
 const CATEGORY_MAP = Object.fromEntries(ALL_CATEGORIES.map(c => [c.id, c]))
 const DEFAULT_CAT = { emoji: '📦', color: 'bg-stone-400', label: 'Other' }
 
+const fmtDayNet = (n) => {
+  const rounded = Math.round(n)
+  if (rounded === 0) return '0'
+  const abs = Math.abs(rounded)
+  const prefix = rounded < 0 ? '-' : '+'
+  if (abs >= 1000) return prefix + (abs / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
+  return prefix + abs
+}
+
 const tabs = ['List', 'Spending']
 const spendingFilters = ['expenses', 'income', 'all']
 
@@ -328,12 +337,6 @@ export default function ActivityPage({ onEditTransaction }) {
                 const stats = day && dailyStats[day.dateStr]
                 const hasTransaction = stats?.count > 0
                 const net = stats?.net ?? 0
-                const fmtNet = (n) => {
-                  const abs = Math.abs(n)
-                  const prefix = n < 0 ? '-' : '+'
-                  if (abs >= 1000) return prefix + (abs / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
-                  return prefix + abs
-                }
 
                 return (
                   <button
@@ -358,8 +361,8 @@ export default function ActivityPage({ onEditTransaction }) {
                       <>
                         <span className="text-sm">{day.date}</span>
                         {hasTransaction && (
-                          <span className={`text-[10px] font-semibold ${isSelected ? 'text-white/80' : net >= 0 ? 'text-emerald-500' : 'text-red-400'}`}>
-                            {fmtNet(net)}
+                          <span className={`text-[10px] font-semibold ${isSelected ? 'text-white/80' : Math.round(net) > 0 ? 'text-emerald-500' : Math.round(net) < 0 ? 'text-red-400' : 'text-[#8F889B]'}`}>
+                            {fmtDayNet(net)}
                           </span>
                         )}
                       </>
